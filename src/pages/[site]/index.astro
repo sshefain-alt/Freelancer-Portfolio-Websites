@@ -1,0 +1,602 @@
+---
+import Base from '../../layouts/Base.astro';
+import Ph from '../../components/Ph.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import CaseStudyCard from '../../components/CaseStudyCard.astro';
+import ContactForm from '../../components/ContactForm.astro';
+import { sites, featuredProjects, featuredCaseStudies } from '../../data';
+import { motifFor } from '../../lib/site';
+import { seoDescription } from '../../lib/seo';
+
+export function getStaticPaths() {
+  return sites.map((site) => ({ params: { site: site.prefix }, props: { site } }));
+}
+
+const { site } = Astro.props;
+const motif = motifFor(site);
+const highlights = featuredProjects(site, 6);
+const studies = featuredCaseStudies(site, 3);
+const base = `/${site.prefix}`;
+
+const homeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: site.brand,
+  description: site.positioning,
+  url: new URL(`${base}/`, Astro.site).href,
+  email: site.email,
+  telephone: site.phone,
+  areaServed: `${site.city}, ${site.region}`,
+  priceRange: '$$',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: site.city,
+    addressRegion: site.region,
+  },
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: `${site.role} services`,
+    itemListElement: site.services.map((s, i) => ({
+      '@type': 'Offer',
+      position: i + 1,
+      itemOffered: { '@type': 'Service', name: s.title, description: s.summary },
+    })),
+  },
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: site.faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answer },
+  })),
+};
+---
+
+<Base
+  site={site}
+  title={site.seo.title}
+  description={seoDescription(site.seo.description)}
+  path={`/${site.prefix}`}
+  jsonld={[homeSchema, faqSchema]}
+>
+  <!-- ─────────────────────────────────────────────── Hero -->
+  <section class="hero">
+    <div class="wrap hero__inner">
+      <div class="hero__copy">
+        <p class="hero__avail">
+          <span class="dot" aria-hidden="true"></span>
+          {site.availability}
+        </p>
+
+        <h1>
+          Freelance <em>{site.servicePhrase}</em> for {site.clientsPhrase}
+        </h1>
+
+        <p class="hero__name">
+          <strong>{site.name}</strong> — {site.role} in {site.city}, {site.region}
+        </p>
+
+        <p class="lead">{site.positioning}</p>
+
+        <div class="btn-row hero__ctas">
+          <a class="btn btn--primary" href={`${base}/#work`} data-scroll>View Work</a>
+          <a class="btn btn--ghost" href={`${base}/contact/`}>Contact</a>
+        </div>
+
+        <ul class="hero__meta">
+          <li><strong>{site.yearsExperience}+</strong> years experience</li>
+          <li><strong>{site.projects.length}</strong> selected projects</li>
+          <li><strong>{site.caseStudies.length}</strong> case studies</li>
+        </ul>
+      </div>
+
+      <div class="hero__visual">
+        <div class="hero__frame">
+          <Ph
+            src={site.projects[0].cover}
+            alt={`${site.brand} — featured ${site.role.toLowerCase()} work in ${site.city}`}
+            motif={motif}
+            accent={site.accent}
+            loading="eager"
+            sizes="(max-width: 900px) 100vw, 50vw"
+          />
+        </div>
+        <div class="hero__badge">
+          <span class="hero__badge-value">{site.stats[0].value}</span>
+          <span class="hero__badge-label">{site.stats[0].label}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <ul class="stats hero__stats">
+        {
+          site.stats.map((s) => (
+            <li class="stat">
+              <span class="stat__value">{s.value}</span>
+              <span class="stat__label">{s.label}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────── Highlights -->
+  <section class="section" id="work" aria-labelledby="work-title">
+    <div class="wrap">
+      <div class="section__head">
+        <span class="eyebrow">Selected work</span>
+        <h2 id="work-title">Portfolio highlights</h2>
+        <p>
+          A sample of recent {site.servicePhrase.toLowerCase()} projects. Every one links through to
+          the full brief, process and outcome.
+        </p>
+      </div>
+
+      <div class="grid grid--3">
+        {highlights.map((p) => <ProjectCard project={p} site={site} motif={motif} />)}
+      </div>
+
+      <div class="more-row">
+        <a class="btn btn--ghost" href={`${base}/projects/`}>
+          Browse all {site.projects.length} projects →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────── Services -->
+  <section class="section section--alt" id="services" aria-labelledby="services-title">
+    <div class="wrap">
+      <div class="section__head">
+        <span class="eyebrow">What I do</span>
+        <h2 id="services-title">Services</h2>
+        <p>Four ways we can work together, from a single deliverable to an ongoing retainer.</p>
+      </div>
+
+      <div class="grid grid--4 services">
+        {
+          site.services.map((s, i) => (
+            <article class="service">
+              <span class="service__num">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{s.title}</h3>
+              <p>{s.summary}</p>
+              <ul class="bullets">
+                {s.points.map((pt) => (
+                  <li>{pt}</li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────── Pricing -->
+  <section class="section" aria-labelledby="pricing-title">
+    <div class="wrap">
+      <div class="section__head section__head--center">
+        <span class="eyebrow">Packages</span>
+        <h2 id="pricing-title">Straightforward pricing</h2>
+        <p>Indicative starting points. Every project is quoted properly once we have scoped it.</p>
+      </div>
+
+      <div class="grid grid--3">
+        {
+          site.packages.map((p) => (
+            <article class:list={['tier', p.highlighted && 'tier--featured']}>
+              <div>
+                <h3 class="tier__name">{p.name}</h3>
+                <p class="tier__price">
+                  {p.price}
+                  {p.cadence && <span class="tier__cadence">{p.cadence}</span>}
+                </p>
+              </div>
+              <p class="tier__summary">{p.summary}</p>
+              <ul class="tier__list">
+                {p.features.map((f) => (
+                  <li>{f}</li>
+                ))}
+              </ul>
+              <a
+                class:list={['btn', p.highlighted ? 'btn--primary' : 'btn--ghost']}
+                href={`${base}/contact/`}
+              >
+                Get a quote
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────── Process -->
+  <section class="section section--night" aria-labelledby="process-title">
+    <div class="wrap">
+      <div class="section__head">
+        <span class="eyebrow">How it works</span>
+        <h2 id="process-title">A process with no surprises</h2>
+        <p>Three stages, agreed scope, and clear checkpoints before anything moves forward.</p>
+      </div>
+
+      <ol class="process">
+        {
+          site.process.map((s) => (
+            <li class="process__item">
+              <span class="process__step">Step {s.step}</span>
+              <h3 class="process__title">{s.title}</h3>
+              <p class="process__body">{s.description}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────── Case studies -->
+  <section class="section" aria-labelledby="cases-title">
+    <div class="wrap">
+      <div class="section__head">
+        <span class="eyebrow">Dig deeper</span>
+        <h2 id="cases-title">Case studies</h2>
+        <p>Longer write-ups with the challenge, the approach, the timeline and the numbers.</p>
+      </div>
+
+      <div class="grid grid--3">
+        {studies.map((cs) => <CaseStudyCard caseStudy={cs} site={site} motif={motif} />)}
+      </div>
+
+      <div class="more-row">
+        <a class="btn btn--ghost" href={`${base}/case-studies/`}>Read all case studies →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────── Testimonials -->
+  <section class="section section--alt" aria-labelledby="social-title">
+    <div class="wrap">
+      <div class="section__head section__head--center">
+        <span class="eyebrow">Social proof</span>
+        <h2 id="social-title">What clients say</h2>
+      </div>
+
+      <div class="grid grid--3">
+        {
+          site.testimonials.map((t) => (
+            <figure class="quote">
+              <blockquote class="quote__text">“{t.quote}”</blockquote>
+              <figcaption class="quote__who">
+                <span class="quote__avatar" aria-hidden="true">
+                  {t.initials}
+                </span>
+                <span>
+                  <span class="quote__name">{t.name}</span>
+                  <span class="quote__role">{t.role}</span>
+                </span>
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────── FAQ -->
+  <section class="section" aria-labelledby="faq-title">
+    <div class="wrap-narrow">
+      <div class="section__head section__head--center">
+        <span class="eyebrow">FAQ</span>
+        <h2 id="faq-title">Questions I'm asked most</h2>
+      </div>
+
+      <div class="faq">
+        {
+          site.faqs.map((f, i) => (
+            <details class="faq__item" open={i === 0}>
+              <summary>{f.question}</summary>
+              <div class="faq__answer">
+                <p>{f.answer}</p>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────── Contact -->
+  <section class="section section--alt" id="contact" aria-labelledby="contact-title">
+    <div class="wrap contact-split">
+      <div class="contact-split__aside">
+        <span class="eyebrow">Start a project</span>
+        <h2 id="contact-title">Tell me what you're building</h2>
+        <p class="lead">
+          Share the brief, the rough budget and your timing. You'll get a considered reply — not an
+          automated one — within 1 business day.
+        </p>
+
+        <dl class="def-list contact-split__facts">
+          <div>
+            <dt>Email</dt>
+            <dd><a href={`mailto:${site.email}`}>{site.email}</a></dd>
+          </div>
+          {
+            site.phone && (
+              <div>
+                <dt>Phone</dt>
+                <dd>
+                  <a href={`tel:${site.phone}`}>{site.phoneDisplay ?? site.phone}</a>
+                </dd>
+              </div>
+            )
+          }
+          <div>
+            <dt>Based in</dt>
+            <dd>
+              {site.city}, {site.region} — available worldwide
+            </dd>
+          </div>
+          <div>
+            <dt>Availability</dt>
+            <dd>{site.availability}</dd>
+          </div>
+        </dl>
+
+        <div class="btn-row" style="margin-top:var(--sp-5)">
+          <a class="btn btn--primary" href={`${base}/contact/`}>Open full contact page</a>
+        </div>
+      </div>
+
+      <div class="contact-split__form">
+        <ContactForm site={site} />
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* ── Hero ─────────────────────────────────────────── */
+  .hero {
+    background:
+      radial-gradient(120% 90% at 8% 0%, var(--tint) 0%, transparent 55%),
+      linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    padding-top: clamp(2.5rem, 6vw, 5rem);
+    padding-bottom: clamp(2.5rem, 5vw, 4rem);
+    border-bottom: 1px solid var(--line-soft);
+    overflow: hidden;
+  }
+  .hero__inner {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: center;
+  }
+  @media (min-width: 940px) {
+    .hero__inner {
+      grid-template-columns: 1.05fr 0.95fr;
+    }
+  }
+
+  .hero__avail {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: var(--t-xs);
+    font-weight: 640;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.42rem 0.9rem;
+    margin-bottom: var(--sp-5);
+  }
+  .hero__avail .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.18);
+    flex: none;
+  }
+
+  .hero h1 {
+    margin-bottom: var(--sp-4);
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+    position: relative;
+    white-space: nowrap;
+  }
+  .hero h1 em::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.06em;
+    height: 0.1em;
+    background: currentColor;
+    opacity: 0.25;
+    border-radius: 2px;
+  }
+
+  .hero__name {
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    margin-bottom: var(--sp-4);
+  }
+  .hero__name strong {
+    color: var(--ink);
+    font-weight: 650;
+  }
+
+  .hero__ctas {
+    margin-top: var(--sp-6);
+  }
+
+  .hero__meta {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.5rem;
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--line-soft);
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+  }
+  .hero__meta strong {
+    color: var(--ink);
+    font-weight: 680;
+  }
+
+  .hero__visual {
+    position: relative;
+  }
+  .hero__frame {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--night-2);
+    box-shadow: var(--shadow-lg);
+  }
+  .hero__frame :global(img),
+  .hero__frame :global(svg) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hero__badge {
+    position: absolute;
+    left: clamp(0.75rem, 2vw, 1.5rem);
+    bottom: clamp(0.75rem, 2vw, 1.5rem);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: var(--radius);
+    padding: 0.85rem 1.1rem;
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 0.1rem;
+    max-width: 14rem;
+  }
+  .hero__badge-value {
+    font-family: var(--display);
+    font-size: var(--t-lg);
+    font-weight: 720;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .hero__badge-label {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    line-height: 1.35;
+  }
+
+  .hero__stats {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    padding-top: clamp(2rem, 4vw, 3rem);
+    border-top: 1px solid var(--line);
+  }
+
+  /* ── Shared bits ──────────────────────────────────── */
+  .more-row {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ── Services ─────────────────────────────────────── */
+  .service {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .service:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+  }
+  .service__num {
+    font-family: var(--display);
+    font-size: var(--t-xs);
+    font-weight: 750;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    opacity: 0.7;
+  }
+  .service h3 {
+    font-size: var(--t-md);
+    margin: 0;
+  }
+  .service p {
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    margin: 0;
+    line-height: 1.55;
+  }
+  .service .bullets {
+    margin-top: auto;
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--line-soft);
+  }
+
+  /* ── Contact split ────────────────────────────────── */
+  .contact-split {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+  }
+  @media (min-width: 940px) {
+    .contact-split {
+      grid-template-columns: 0.85fr 1.15fr;
+      align-items: start;
+    }
+  }
+  .contact-split__facts {
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--line);
+  }
+  .contact-split__facts a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .contact-split__facts a:hover {
+    text-decoration: underline;
+  }
+  .contact-split__form {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    box-shadow: var(--shadow);
+  }
+</style>
+
+<script>
+  // "View Work" scrolls smoothly and moves focus for keyboard users.
+  document.querySelectorAll<HTMLAnchorElement>('[data-scroll]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href')?.split('#')[1];
+      const target = id && document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+      history.replaceState(null, '', `#${id}`);
+    });
+  });
+</script>

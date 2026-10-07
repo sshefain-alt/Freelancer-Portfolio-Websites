@@ -1,0 +1,87 @@
+---
+import type { Site } from '../data/types';
+
+interface Props {
+  site: Site;
+  path: string;
+}
+
+const { site, path } = Astro.props;
+const base = `/${site.prefix}`;
+
+const links = [
+  { label: 'Home', href: `${base}/` },
+  { label: 'Projects', href: `${base}/projects/` },
+  { label: 'Case Studies', href: `${base}/case-studies/` },
+  { label: 'About', href: `${base}/about/` },
+  { label: 'Contact', href: `${base}/contact/` },
+];
+
+/** Current page gets aria-current="page" for assistive tech + styling. */
+const isActive = (href: string) =>
+  href === `${base}/`
+    ? path === `/${site.prefix}`
+    : path.startsWith(href.replace(/\/$/, ''));
+---
+
+<header class="nav">
+  <div class="wrap">
+    <div class="nav__inner">
+      <a class="nav__logo" href={`${base}/`} aria-label={`${site.brand} — home`}>
+        <span class="nav__mark" aria-hidden="true">
+          {site.name.split(' ').map((w) => w[0]).join('')}
+        </span>
+        <span>{site.brand}</span>
+      </a>
+
+      <nav aria-label="Primary">
+        <ul class="nav__links">
+          {
+            links.map((l) => (
+              <li>
+                <a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined}>
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <a class="btn btn--primary btn--sm nav__cta" href={`${base}/contact/`}>Start a project</a>
+
+      <button
+        class="nav__toggle"
+        type="button"
+        data-nav-toggle
+        aria-expanded="false"
+        aria-controls="nav-drawer"
+        aria-label="Toggle navigation menu"
+      >
+        <svg class="icon-menu" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h18"></path>
+        </svg>
+        <svg class="icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="nav__drawer" id="nav-drawer" data-nav-drawer>
+      <nav aria-label="Mobile">
+        <ul>
+          {
+            links.map((l) => (
+              <li>
+                <a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined}>
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <a class="btn btn--primary" href={`${base}/contact/`}>Start a project</a>
+      </nav>
+    </div>
+  </div>
+</header>

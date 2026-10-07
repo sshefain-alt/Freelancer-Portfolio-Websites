@@ -1,0 +1,107 @@
+---
+import type { Site } from '../data/types';
+
+interface Props {
+  site: Site;
+}
+
+const { site } = Astro.props;
+const base = `/${site.prefix}`;
+const year = new Date().getFullYear();
+
+const columns = [
+  {
+    title: 'Explore',
+    links: [
+      { label: 'Home', href: `${base}/` },
+      { label: 'Projects', href: `${base}/projects/` },
+      { label: 'Case Studies', href: `${base}/case-studies/` },
+      { label: 'About', href: `${base}/about/` },
+      { label: 'Contact', href: `${base}/contact/` },
+    ],
+  },
+  {
+    title: 'Services',
+    links: site.services.slice(0, 5).map((s) => ({
+      label: s.title,
+      href: `${base}/#services`,
+    })),
+  },
+];
+---
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div>
+        <span class="footer__brand">{site.brand}</span>
+        <p>
+          {site.role} based in {site.city}, {site.region}. {site.positioning}
+        </p>
+        <p style="margin-top:1rem">
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+          {
+            site.phone && (
+              <>
+                <br />
+                <a href={`tel:${site.phone}`}>{site.phoneDisplay ?? site.phone}</a>
+              </>
+            )
+          }
+        </p>
+        <ul style="display:flex;gap:.9rem;flex-wrap:wrap;margin-top:.75rem">
+          {
+            site.socials.map((s) => (
+              <li>
+                <a href={s.href} rel="noopener noreferrer nofollow" target="_blank">
+                  {s.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      {
+        columns.map((col) => (
+          <div>
+            <h2>{col.title}</h2>
+            <ul>
+              {col.links.map((l) => (
+                <li>
+                  <a href={l.href}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+
+      <div>
+        <h2>Let's talk</h2>
+        <p>
+          {site.availability}. Tell me about your project and I'll reply within 1 business day.
+        </p>
+        <a class="btn btn--light btn--sm" href={`${base}/contact/`} style="margin-top:.5rem">
+          Request a quote
+        </a>
+        {
+          site.portfolioPdf && (
+            <p style="margin-top:1rem;font-size:var(--t-xs)">
+              <a href={`/${site.portfolioPdf}`} download>
+                ↓ Download portfolio (PDF)
+              </a>
+            </p>
+          )
+        }
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© {year} {site.brand}. All rights reserved.</span>
+      <span>
+        {site.role} · {site.city}, {site.region}
+      </span>
+    </div>
+  </div>
+</footer>

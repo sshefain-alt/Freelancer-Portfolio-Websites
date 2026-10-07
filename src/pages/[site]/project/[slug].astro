@@ -1,0 +1,471 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Ph from '../../../components/Ph.astro';
+import ProjectCard from '../../../components/ProjectCard.astro';
+import { sites } from '../../../data';
+import { motifFor } from '../../../lib/site';
+import { seoTitle, seoDescription } from '../../../lib/seo';
+
+export function getStaticPaths() {
+  return sites.flatMap((site) =>
+    site.projects.map((project) => ({
+      params: { site: site.prefix, slug: project.slug },
+      props: { site, project },
+    })),
+  );
+}
+
+const { site, project } = Astro.props;
+const motif = motifFor(site);
+const base = `/${site.prefix}`;
+
+// Same-category projects first, then others, never repeating the current one.
+const related = [
+  ...site.projects.filter((p) => p.slug !== project.slug && p.category === project.category),
+  ...site.projects.filter((p) => p.slug !== project.slug && p.category !== project.category),
+].slice(0, 3);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: project.title,
+  description: project.excerpt,
+  url: new URL(`${base}/project/${project.slug}/`, Astro.site).href,
+  dateCreated: project.year,
+  creator: { '@type': 'Person', name: site.name },
+  about: project.tag,
+  keywords: project.tools.join(', '),
+  image: new URL(`${base}/project/${project.slug}/`, Astro.site).href,
+  ...(
+    project.metrics && {
+      subjectOf: {
+        '@type': 'CreativeWork',
+        name: `${project.title} results`,
+        description: project.outcomes.join(' '),
+      },
+    }
+  ),
+};
+---
+
+<Base
+  site={site}
+  title={seoTitle([`${project.title}`, `${project.tag} Project`, site.brand])}
+  description={seoDescription(
+    project.excerpt,
+    `A ${project.tag.toLowerCase()} project by ${site.name}, freelance ${site.role.toLowerCase()} in ${site.city}.`,
+  )}
+  path={`/${site.prefix}/project/${project.slug}`}
+  jsonld={[schema]}
+  type="article"
+>
+  <!-- ─────────────────────────────────────────── Hero banner -->
+  <section class="p-hero">
+    <div class="p-hero__media">
+      <Ph
+        src={project.cover}
+        alt={`${project.title} — hero image`}
+        motif={motif}
+        accent={site.accent}
+        loading="eager"
+        class="p-hero__img"
+        sizes="100vw"
+      />
+      <div class="p-hero__scrim" aria-hidden="true"></div>
+    </div>
+
+    <div class="wrap p-hero__content">
+      <nav aria-label="Breadcrumb">
+        <ol class="crumbs crumbs--light">
+          <li><a href={`${base}/`}>Home</a></li>
+          <li><a href={`${base}/projects/`}>Projects</a></li>
+          <li aria-current="page">{project.title}</li>
+        </ol>
+      </nav>
+
+      <span class="p-hero__tag">{project.tag}</span>
+      <h1>{project.title}</h1>
+      <p class="p-hero__lead">{project.excerpt}</p>
+
+      <dl class="p-hero__meta">
+        <div><dt>Client</dt><dd>{project.client ?? site.brand}</dd></div>
+        <div><dt>Year</dt><dd>{project.year}</dd></div>
+        <div><dt>Category</dt><dd>{project.category}</dd></div>
+        <div><dt>Role</dt><dd>{site.role}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Metrics -->
+  {
+    project.metrics && project.metrics.length > 0 && (
+      <section class="section--tight p-metrics" aria-label="Project results at a glance">
+        <div class="wrap">
+          <ul class="stats">
+            {project.metrics.map((m) => (
+              <li class="stat">
+                <span class="stat__value">{m.value}</span>
+                <span class="stat__label">{m.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ─────────────────────────────────────────── Overview -->
+  <section class="section" aria-labelledby="overview-title">
+    <div class="wrap p-body">
+      <div class="p-body__main">
+        <span class="eyebrow">Overview</span>
+        <h2 id="overview-title">The brief</h2>
+        <div class="prose">
+          {project.overview.map((para) => <p>{para}</p>)}
+        </div>
+
+        <div class="p-block">
+          <h3>Tools & technologies</h3>
+          <ul class="chips">
+            {project.tools.map((t) => <li class="chip">{t}</li>)}
+          </ul>
+        </div>
+
+        <div class="p-block">
+          <h3>Outcomes</h3>
+          <ul class="bullets">
+            {project.outcomes.map((o) => <li>{o}</li>)}
+          </ul>
+        </div>
+      </div>
+
+      <aside class="p-body__side" aria-label="Project details">
+        <div class="p-side-card">
+          <h3>Project details</h3>
+          <dl class="def-list">
+            <div><dt>Client</dt><dd>{project.client ?? site.brand}</dd></div>
+            <div><dt>Year</dt><dd>{project.year}</dd></div>
+            <div><dt>Discipline</dt><dd>{project.tag}</dd></div>
+            <div><dt>Category</dt><dd>{project.category}</dd></div>
+          </dl>
+
+          <a class="btn btn--primary p-side-card__cta" href={`${base}/contact/?type=${encodeURIComponent(project.tag)}`}>
+            Start a similar project
+          </a>
+          <a class="btn btn--ghost" href={`${base}/projects/`}>← Back to all projects</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Gallery -->
+  {
+    project.gallery && project.gallery.length > 0 && (() => {
+      const frames = project.gallery;
+      return (
+      <section class="section section--alt" aria-labelledby="gallery-title">
+        <div class="wrap">
+          <div class="section__head">
+            <span class="eyebrow">Gallery</span>
+            <h2 id="gallery-title">Selected frames</h2>
+          </div>
+          <div class="p-gallery">
+            {frames.map((img, i) => (
+              <figure class="p-gallery__item">
+                <div class="media media--wide">
+                  <Ph
+                    src={img}
+                    alt={`${project.title} — image ${i + 1} of ${frames.length}`}
+                    motif={motif}
+                    accent={site.accent}
+                    sizes="(max-width: 800px) 100vw, 66vw"
+                  />
+                </div>
+                <figcaption>
+                  {project.title} — {project.tag}, {project.year}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+      );
+    })()
+  }
+
+  <!-- ─────────────────────────────────────────── Next steps CTA -->
+  <section class="section section--night" aria-labelledby="next-title">
+    <div class="wrap next-cta">
+      <div>
+        <span class="eyebrow">Next steps</span>
+        <h2 id="next-title">Want results like these?</h2>
+        <p>
+          Send over your brief, rough budget and timing. You'll get a reply from me — {site.name} —
+          within 1 business day with a scope and a price.
+        </p>
+        <div class="btn-row next-cta__actions">
+          <a class="btn btn--light" href={`${base}/contact/`}>Request a quote</a>
+          <a class="btn btn--onnight" href={`mailto:${site.email}`}>{site.email}</a>
+        </div>
+      </div>
+
+      <div class="next-cta__prompt">
+        <p class="next-cta__prompt-label">Or send a message now</p>
+        <a
+          class="next-cta__mail"
+          href={`mailto:${site.email}?subject=${encodeURIComponent(`Enquiry — ${project.title}`)}&body=${encodeURIComponent(`Hi ${site.name.split(' ')[0]},\n\nI saw ${project.title} and I'd like to discuss a similar project.\n\nProject type: \nBudget: \nTimeline: \n\nThanks,`)}`}
+        >
+          Pre-fill an email template →
+        </a>
+        {
+          site.phone && (
+            <a class="next-cta__phone" href={`tel:${site.phone}`}>
+              Or call {site.phoneDisplay ?? site.phone}
+            </a>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Related -->
+  {
+    related.length > 0 && (
+      <section class="section" aria-labelledby="related-title">
+        <div class="wrap">
+          <div class="section__head">
+            <span class="eyebrow">Keep exploring</span>
+            <h2 id="related-title">Related projects</h2>
+          </div>
+          <div class="grid grid--3">
+            {related.map((p) => (
+              <ProjectCard project={p} site={site} motif={motif} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  /* Hero banner */
+  .p-hero {
+    position: relative;
+    isolation: isolate;
+    color: #fff;
+    padding-block: clamp(3rem, 8vw, 6rem) clamp(2.5rem, 6vw, 4.5rem);
+    overflow: hidden;
+  }
+  .p-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+  .p-hero__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .p-hero__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      rgba(8, 9, 13, 0.94) 0%,
+      rgba(8, 9, 13, 0.82) 45%,
+      rgba(8, 9, 13, 0.5) 100%
+    );
+  }
+
+  .p-hero__tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: var(--t-xs);
+    font-weight: 680;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    margin-bottom: var(--sp-4);
+  }
+  .p-hero h1 {
+    color: #fff;
+    max-width: 20ch;
+    margin-bottom: var(--sp-4);
+  }
+  .p-hero__lead {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: var(--t-md);
+    max-width: 54ch;
+    margin-bottom: var(--sp-6);
+  }
+
+  .crumbs--light li {
+    color: rgba(255, 255, 255, 0.65);
+  }
+  .crumbs--light a {
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .crumbs--light a:hover {
+    color: #fff;
+  }
+
+  .p-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-5) clamp(1.5rem, 4vw, 3rem);
+    margin: 0;
+    padding-top: var(--sp-5);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .p-hero__meta dt {
+    font-size: var(--t-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 0.3rem;
+  }
+  .p-hero__meta dd {
+    margin: 0;
+    font-weight: 620;
+    font-size: var(--t-sm);
+    color: #fff;
+  }
+
+  /* Metrics */
+  .p-metrics {
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line-soft);
+    padding-block: clamp(1.75rem, 4vw, 2.75rem);
+  }
+
+  /* Body layout */
+  .p-body {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+  }
+  @media (min-width: 900px) {
+    .p-body {
+      grid-template-columns: 1fr 20rem;
+      align-items: start;
+    }
+  }
+
+  .prose p {
+    font-size: var(--t-md);
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+  .prose p:first-of-type {
+    font-size: var(--t-lg);
+    color: var(--ink);
+    line-height: 1.55;
+    font-family: var(--display);
+    letter-spacing: -0.01em;
+  }
+
+  .p-block {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    padding-top: clamp(1.5rem, 3vw, 2rem);
+    border-top: 1px solid var(--line-soft);
+  }
+  .p-block h3 {
+    font-size: var(--t-md);
+    margin-bottom: var(--sp-4);
+  }
+
+  .p-side-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: clamp(1.25rem, 2.5vw, 1.6rem);
+    display: grid;
+    gap: var(--sp-4);
+    position: sticky;
+    top: 6rem;
+  }
+  .p-side-card h3 {
+    font-size: var(--t-md);
+    margin: 0;
+  }
+  .p-side-card .btn {
+    width: 100%;
+  }
+  .p-side-card__cta {
+    margin-top: var(--sp-2);
+  }
+
+  /* Gallery */
+  .p-gallery {
+    display: grid;
+    gap: clamp(1.25rem, 3vw, 2rem);
+  }
+  @media (min-width: 760px) {
+    .p-gallery {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .p-gallery__item:first-child {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Next steps */
+  .next-cta {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3rem);
+    align-items: center;
+  }
+  @media (min-width: 860px) {
+    .next-cta {
+      grid-template-columns: 1.4fr 1fr;
+    }
+  }
+  .next-cta h2 {
+    font-size: var(--t-xl);
+    margin-bottom: var(--sp-4);
+  }
+  .next-cta p {
+    max-width: 46ch;
+  }
+  .next-cta__actions {
+    margin-top: var(--sp-5);
+  }
+  .next-cta__prompt {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.4rem, 3vw, 2rem);
+    display: grid;
+    gap: var(--sp-3);
+  }
+  .next-cta__prompt-label {
+    font-size: var(--t-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+  }
+  .next-cta__mail {
+    color: #fff;
+    font-family: var(--display);
+    font-size: var(--t-lg);
+    font-weight: 640;
+    text-decoration: none;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+  .next-cta__mail:hover {
+    color: var(--accent);
+  }
+  .next-cta__phone {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: var(--t-sm);
+    text-decoration: none;
+  }
+  .next-cta__phone:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+</style>

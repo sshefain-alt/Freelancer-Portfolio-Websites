@@ -1,0 +1,77 @@
+---
+import Ph from './Ph.astro';
+import type { CaseStudy, Site } from '../data/types';
+
+interface Props {
+  caseStudy: CaseStudy;
+  site: Site;
+  motif?: 'web' | 'photo' | 'video' | 'architecture' | 'abstract';
+}
+
+const { caseStudy: cs, site, motif = 'abstract' } = Astro.props;
+const href = `/${site.prefix}/case-study/${cs.slug}/`;
+---
+
+<article class="card case-card">
+  <div class="card__media">
+    <Ph
+      src={cs.cover}
+      alt={`Case study: ${cs.title}`}
+      motif={motif}
+      accent={site.accent}
+      sizes="(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 33vw"
+    />
+  </div>
+  <div class="card__body">
+    <span class="tag">{cs.tag}</span>
+    <h3 class="card__title"><a href={href}>{cs.title}</a></h3>
+    <p class="card__excerpt">{cs.challenge.slice(0, 130)}…</p>
+    {
+      cs.metrics && cs.metrics.length > 0 && (
+        <ul class="cs-metrics">
+          {cs.metrics.slice(0, 3).map((m) => (
+            <li>
+              <strong>{m.value}</strong>
+              <span>{m.label}</span>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    <div class="card__meta">
+      <span>{cs.client ?? site.brand}</span>
+      <span>{cs.timeline.split('·')[0].trim()}</span>
+    </div>
+  </div>
+</article>
+
+<style>
+  .cs-metrics {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--line-soft);
+    margin-top: 0.25rem;
+  }
+  .cs-metrics li {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .cs-metrics strong {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    font-weight: 720;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+  .cs-metrics span {
+    font-size: 0.7rem;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.15rem;
+  }
+</style>

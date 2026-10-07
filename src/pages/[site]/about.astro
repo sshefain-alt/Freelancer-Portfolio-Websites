@@ -1,0 +1,507 @@
+---
+import Base from '../../layouts/Base.astro';
+import Ph from '../../components/Ph.astro';
+import { sites } from '../../data';
+import { seoTitle, seoDescription } from '../../lib/seo';
+
+export function getStaticPaths() {
+  return sites.map((site) => ({ params: { site: site.prefix }, props: { site } }));
+}
+
+const { site } = Astro.props;
+const base = `/${site.prefix}`;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: `About ${site.name} — ${site.role} in ${site.city}`,
+  description: `${site.name} is a freelance ${site.role.toLowerCase()} in ${site.city}, ${site.region} with ${site.yearsExperience} years of experience. Skills, tools, values and career timeline.`,
+  url: new URL(`${base}/about/`, Astro.site).href,
+  mainEntity: {
+    '@type': 'Person',
+    name: site.name,
+    jobTitle: site.role,
+    knowsAbout: site.skills,
+    knowsLanguage: 'en',
+    worksFor: { '@type': 'Organization', name: site.brand },
+  },
+};
+---
+
+<Base
+  site={site}
+  title={seoTitle([`About ${site.name}`, `Freelance ${site.role}`, site.city])}
+  description={seoDescription(
+    `${site.name} is a freelance ${site.role.toLowerCase()} based in ${site.city}, ${site.region}, with ${site.yearsExperience} years of experience.`,
+    'Skills, tools, values and career timeline.',
+  )}
+  path={`/${site.prefix}/about`}
+  jsonld={[schema]}
+>
+  <!-- ─────────────────────────────────────────── Intro -->
+  <section class="page-head">
+    <div class="wrap">
+      <nav aria-label="Breadcrumb">
+        <ol class="crumbs">
+          <li><a href={`${base}/`}>Home</a></li>
+          <li aria-current="page">About</li>
+        </ol>
+      </nav>
+
+      <div class="about-intro">
+        <div class="about-intro__copy">
+          <span class="eyebrow">About</span>
+          <h1>{site.name}</h1>
+          <p class="about-intro__role">
+            {site.role} · {site.city}, {site.region} · {site.yearsExperience} years experience
+          </p>
+          <p class="lead">{site.positioning}</p>
+
+          <div class="btn-row about-intro__ctas">
+            <a class="btn btn--primary" href={`${base}/contact/`}>Start a project</a>
+            <a class="btn btn--ghost" href={`${base}/projects/`}>View work</a>
+            {
+              site.portfolioPdf && (
+                <a class="btn btn--ghost" href={`/${site.portfolioPdf}`} download>
+                  ↓ Portfolio (PDF)
+                </a>
+              )
+            }
+          </div>
+        </div>
+
+        <div class="about-intro__portrait">
+          <div class="about-intro__frame">
+            <Ph
+              alt={`${site.name}, ${site.role} in ${site.city}`}
+              motif="portrait"
+              accent={site.accent}
+              loading="eager"
+              sizes="(max-width: 900px) 100vw, 33vw"
+            />
+          </div>
+          <ul class="about-intro__contact">
+            <li>
+              <span>Email</span>
+              <a href={`mailto:${site.email}`}>{site.email}</a>
+            </li>
+            {
+              site.phone && (
+                <li>
+                  <span>Phone</span>
+                  <a href={`tel:${site.phone}`}>{site.phoneDisplay ?? site.phone}</a>
+                </li>
+              )
+            }
+            <li>
+              <span>Availability</span>
+              <strong>{site.availability}</strong>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Stats -->
+  <section class="section--tight stats-band" aria-label="Experience at a glance">
+    <div class="wrap">
+      <ul class="stats">
+        {
+          site.stats.map((s) => (
+            <li class="stat">
+              <span class="stat__value">{s.value}</span>
+              <span class="stat__label">{s.label}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Bio -->
+  <section class="section" aria-labelledby="bio-title">
+    <div class="wrap bio">
+      <div class="bio__copy">
+        <span class="eyebrow">Biography</span>
+        <h2 id="bio-title">The short version</h2>
+        <div class="prose">
+          {site.bio.map((para) => <p>{para}</p>)}
+        </div>
+      </div>
+
+      <aside class="bio__side">
+        <div class="side-card">
+          <h3>Skills</h3>
+          <ul class="skill-list">
+            {site.skills.map((s) => <li>{s}</li>)}
+          </ul>
+        </div>
+
+        <div class="side-card">
+          <h3>Tools & expertise</h3>
+          <ul class="chips">
+            {site.tools.map((t) => <li class="chip">{t}</li>)}
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Values -->
+  <section class="section section--night" aria-labelledby="values-title">
+    <div class="wrap">
+      <div class="section__head">
+        <span class="eyebrow">Mission</span>
+        <h2 id="values-title">What I care about</h2>
+        <p>Three principles that decide how every project runs — and which ones I turn down.</p>
+      </div>
+
+      <div class="grid grid--3 values">
+        {
+          site.values.map((v, i) => (
+            <article class="value">
+              <span class="value__n">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{v.title}</h3>
+              <p>{v.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Timeline -->
+  <section class="section" aria-labelledby="timeline-title">
+    <div class="wrap">
+      <div class="section__head">
+        <span class="eyebrow">Timeline</span>
+        <h2 id="timeline-title">How I got here</h2>
+      </div>
+
+      <ol class="timeline">
+        {
+          site.timeline.map((t) => (
+            <li class="timeline__item">
+              <span class="timeline__year">{t.year}</span>
+              <div class="timeline__body">
+                <h3>{t.title}</h3>
+                <p>{t.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Social -->
+  <section class="section section--alt section--tight" aria-labelledby="social-links-title">
+    <div class="wrap about-social">
+      <div>
+        <h2 id="social-links-title">Elsewhere</h2>
+        <p>Find my work, process notes and latest projects on these channels.</p>
+      </div>
+      <ul class="about-social__links">
+        {
+          site.socials.map((s) => (
+            <li>
+              <a
+                class="btn btn--ghost"
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                {s.label} ↗
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── CTA -->
+  <section class="section section--tight" aria-labelledby="about-cta-title">
+    <div class="wrap about-cta">
+      <div>
+        <h2 id="about-cta-title">Let's work together</h2>
+        <p>{site.availability}. Tell me what you're planning and I'll reply within 1 business day.</p>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn--primary" href={`${base}/contact/`}>Get in touch</a>
+        <a class="btn btn--ghost" href={`${base}/case-studies/`}>Read case studies</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-head {
+    background:
+      radial-gradient(100% 80% at 15% 0%, var(--tint) 0%, transparent 60%),
+      var(--paper-2);
+    border-bottom: 1px solid var(--line-soft);
+    padding-block: clamp(1.5rem, 3vw, 2.25rem) clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .about-intro {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .about-intro {
+      grid-template-columns: 1.4fr 1fr;
+    }
+  }
+
+  .about-intro__role {
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    font-weight: 560;
+    margin-bottom: var(--sp-4);
+  }
+  .about-intro__ctas {
+    margin-top: var(--sp-6);
+  }
+
+  .about-intro__frame {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background: var(--night-2);
+    box-shadow: var(--shadow-lg);
+  }
+  .about-intro__frame :global(img),
+  .about-intro__frame :global(svg) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .about-intro__contact {
+    list-style: none;
+    display: grid;
+    gap: 0.85rem;
+    margin-top: var(--sp-5);
+    padding: var(--sp-5);
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .about-intro__contact li {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .about-intro__contact span {
+    font-size: var(--t-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 650;
+  }
+  .about-intro__contact a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: var(--t-sm);
+    word-break: break-word;
+  }
+  .about-intro__contact a:hover {
+    text-decoration: underline;
+  }
+  .about-intro__contact strong {
+    font-size: var(--t-sm);
+    color: var(--ink);
+    font-weight: 620;
+  }
+
+  .stats-band {
+    background: var(--paper);
+    border-bottom: 1px solid var(--line-soft);
+    padding-block: clamp(2rem, 4vw, 3rem);
+  }
+
+  /* Bio */
+  .bio {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .bio {
+      grid-template-columns: 1.35fr 1fr;
+    }
+  }
+  .prose p {
+    font-size: var(--t-md);
+    line-height: 1.75;
+    color: var(--ink-2);
+  }
+  .prose p:first-of-type {
+    font-size: var(--t-lg);
+    color: var(--ink);
+    line-height: 1.55;
+    font-family: var(--display);
+    letter-spacing: -0.01em;
+  }
+
+  .bio__side {
+    display: grid;
+    gap: clamp(1.25rem, 3vw, 1.75rem);
+  }
+  .side-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: clamp(1.25rem, 2.5vw, 1.6rem);
+  }
+  .side-card h3 {
+    font-size: var(--t-md);
+    margin-bottom: var(--sp-4);
+  }
+
+  .skill-list {
+    list-style: none;
+    display: grid;
+    gap: 0.6rem;
+    font-size: var(--t-sm);
+    color: var(--ink-2);
+  }
+  .skill-list li {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .skill-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .skill-list li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex: none;
+  }
+
+  /* Values */
+  .value {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--radius);
+    padding: clamp(1.35rem, 3vw, 1.9rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+  .value__n {
+    font-family: var(--display);
+    font-size: var(--t-xs);
+    font-weight: 750;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+  }
+  .value h3 {
+    font-size: var(--t-lg);
+    margin: 0;
+    color: #fff;
+  }
+  .value p {
+    margin: 0;
+    font-size: var(--t-sm);
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.65;
+  }
+
+  /* Timeline */
+  .timeline {
+    list-style: none;
+    display: grid;
+    gap: 0;
+    position: relative;
+    padding-left: 0;
+  }
+  .timeline__item {
+    display: grid;
+    gap: var(--sp-2);
+    padding: clamp(1.25rem, 3vw, 1.75rem) 0 clamp(1.25rem, 3vw, 1.75rem) clamp(1.5rem, 4vw, 3rem);
+    border-left: 2px solid var(--line);
+    position: relative;
+  }
+  .timeline__item:last-child {
+    border-left-color: transparent;
+  }
+  .timeline__item::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: clamp(1.6rem, 3.5vw, 2.1rem);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--paper);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  @media (min-width: 760px) {
+    .timeline__item {
+      grid-template-columns: 8rem 1fr;
+      gap: clamp(1.5rem, 4vw, 3rem);
+      align-items: start;
+    }
+  }
+  .timeline__year {
+    font-family: var(--display);
+    font-size: var(--t-lg);
+    font-weight: 720;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .timeline__body h3 {
+    font-size: var(--t-md);
+    margin-bottom: var(--sp-2);
+  }
+  .timeline__body p {
+    margin: 0;
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    max-width: 60ch;
+  }
+
+  /* Social + CTA */
+  .about-social,
+  .about-cta {
+    display: grid;
+    gap: clamp(1.5rem, 4vw, 2.5rem);
+    align-items: center;
+  }
+  @media (min-width: 820px) {
+    .about-social,
+    .about-cta {
+      grid-template-columns: 1fr auto;
+    }
+  }
+  .about-social h2,
+  .about-cta h2 {
+    font-size: var(--t-xl);
+    margin-bottom: var(--sp-3);
+  }
+  .about-social p,
+  .about-cta p {
+    margin: 0;
+    max-width: 46rem;
+  }
+  .about-social__links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+  }
+</style>

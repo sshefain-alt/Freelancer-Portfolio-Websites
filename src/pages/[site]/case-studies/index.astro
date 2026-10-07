@@ -1,0 +1,169 @@
+---
+import Base from '../../../layouts/Base.astro';
+import CaseStudyCard from '../../../components/CaseStudyCard.astro';
+import { sites } from '../../../data';
+import { motifFor } from '../../../lib/site';
+import { seoTitle, seoDescription } from '../../../lib/seo';
+
+export function getStaticPaths() {
+  return sites.map((site) => ({ params: { site: site.prefix }, props: { site } }));
+}
+
+const { site } = Astro.props;
+const motif = motifFor(site);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `${site.brand} — Case Studies`,
+  description: `In-depth ${site.role.toLowerCase()} case studies from ${site.name}: the challenge, the approach, the timeline and the measured results.`,
+  url: new URL(`/${site.prefix}/case-studies/`, Astro.site).href,
+};
+---
+
+<Base
+  site={site}
+  title={seoTitle([`${site.role} Case Studies`, `Results & Approach`, site.brand])}
+  description={seoDescription(
+    `Read ${site.caseStudies.length} detailed ${site.servicePhrase.toLowerCase()} case studies from ${site.city} — challenge, approach, timeline, tools and measurable results.`,
+    `From ${site.name}.`,
+  )}
+  path={`/${site.prefix}/case-studies`}
+  jsonld={[schema]}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <nav aria-label="Breadcrumb">
+        <ol class="crumbs">
+          <li><a href={`/${site.prefix}/`}>Home</a></li>
+          <li aria-current="page">Case Studies</li>
+        </ol>
+      </nav>
+
+      <span class="eyebrow">Proof, not promises</span>
+      <h1>Case studies</h1>
+      <p class="lead page-head__lead">
+        Each write-up follows the same structure: the challenge, what I actually did, how long it
+        took, what it was built with, and what changed as a result.
+      </p>
+
+      <ol class="cs-anatomy" aria-label="How every case study is structured">
+        <li><span>01</span>Challenge / Goal</li>
+        <li><span>02</span>Approach & services</li>
+        <li><span>03</span>Timeline</li>
+        <li><span>04</span>Tools</li>
+        <li><span>05</span>Results</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="cs-title">
+    <div class="wrap">
+      <h2 class="vh" id="cs-title">All case studies</h2>
+
+      <div class="grid grid--3">
+        {site.caseStudies.map((cs) => <CaseStudyCard caseStudy={cs} site={site} motif={motif} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alt" aria-labelledby="testimonials-title">
+    <div class="wrap">
+      <div class="section__head section__head--center">
+        <span class="eyebrow">In their words</span>
+        <h2 id="testimonials-title">Client feedback</h2>
+      </div>
+      <div class="grid grid--3">
+        {
+          site.testimonials.map((t) => (
+            <figure class="quote">
+              <blockquote class="quote__text">“{t.quote}”</blockquote>
+              <figcaption class="quote__who">
+                <span class="quote__avatar" aria-hidden="true">
+                  {t.initials}
+                </span>
+                <span>
+                  <span class="quote__name">{t.name}</span>
+                  <span class="quote__role">{t.role}</span>
+                </span>
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--night" aria-labelledby="cs-cta">
+    <div class="wrap cta-band">
+      <div>
+        <span class="eyebrow">Your turn</span>
+        <h2 id="cs-cta">Let's write the next case study together</h2>
+        <p>
+          Share your brief and I'll come back with a scope, a timeline and a price within 1 business
+          day.
+        </p>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn--light" href={`/${site.prefix}/contact/`}>Request a quote</a>
+        <a class="btn btn--onnight" href={`/${site.prefix}/projects/`}>Browse projects</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-head {
+    background:
+      radial-gradient(100% 80% at 15% 0%, var(--tint) 0%, transparent 60%),
+      var(--paper-2);
+    border-bottom: 1px solid var(--line-soft);
+    padding-block: clamp(1.5rem, 3vw, 2.25rem) clamp(2.5rem, 5vw, 4rem);
+  }
+  .page-head h1 {
+    margin-bottom: var(--sp-4);
+  }
+  .page-head__lead {
+    max-width: 56ch;
+  }
+
+  .cs-anatomy {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2) var(--sp-5);
+    margin-top: clamp(1.75rem, 4vw, 2.5rem);
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--line);
+    font-size: var(--t-sm);
+    color: var(--ink-2);
+    font-weight: 560;
+  }
+  .cs-anatomy span {
+    font-family: var(--display);
+    font-weight: 750;
+    color: var(--accent);
+    margin-right: 0.5rem;
+    font-size: var(--t-xs);
+    letter-spacing: 0.06em;
+  }
+
+  .cta-band {
+    display: grid;
+    gap: clamp(1.5rem, 4vw, 2.5rem);
+    align-items: center;
+  }
+  @media (min-width: 820px) {
+    .cta-band {
+      grid-template-columns: 1fr auto;
+    }
+  }
+  .cta-band h2 {
+    font-size: var(--t-xl);
+    margin-bottom: var(--sp-3);
+  }
+  .cta-band p {
+    margin: 0;
+    max-width: 44rem;
+  }
+</style>

@@ -1,0 +1,531 @@
+---
+import type { Site } from '../data/types';
+
+interface Props {
+  site: Site;
+  /** Preselects the project-type dropdown when arriving from a specific service */
+  defaultType?: string;
+}
+
+const { site, defaultType } = Astro.props;
+
+const projectTypes =
+  site.kind === 'web'
+    ? ['Web Design', 'Branding / Identity', 'Webflow / Front-end Build', 'UX Audit', 'Other']
+    : site.kind === 'photo'
+      ? ['Brand / Editorial Shoot', 'Hospitality & Interiors', 'Product / Still Life', 'Portrait', 'Other']
+      : site.kind === 'video'
+        ? ['Brand Film', 'Event / Conference', 'Editing & Post', 'Social Reels', 'Other']
+        : ['New Build', 'Extension', 'Housing / Developer', 'Interior', 'Other'];
+
+const budgets = [
+  'Under $2,500 / €2,500 / £2,000',
+  '$2,500 – $7,500',
+  '$7,500 – $20,000',
+  '$20,000 – $50,000',
+  '$50,000+',
+  'Not sure yet',
+];
+
+const timelines = [
+  'ASAP — within 2 weeks',
+  'Within a month',
+  '1 – 3 months',
+  '3 – 6 months',
+  'Just exploring',
+];
+
+const preferences = ['Email', 'Phone call', 'Video call', 'WhatsApp / text'];
+const times = ['Morning', 'Afternoon', 'Evening', 'Any time'];
+---
+
+<form
+  class="form"
+  data-contact-form
+  novalidate
+  method="post"
+  action="#"
+  aria-describedby="form-intro"
+>
+  <p id="form-intro" class="form__intro">
+    Fill this in and I'll come back to you within 1 business day. Fields marked
+    <abbr title="required">*</abbr> are required.
+  </p>
+
+  <!-- Honeypot: hidden from humans, catches bots -->
+  <div class="hp" aria-hidden="true">
+    <label for="company-website">Company website</label>
+    <input type="text" id="company-website" name="company_website" tabindex="-1" autocomplete="off" />
+  </div>
+
+  <div class="form__grid">
+    <div class="field">
+      <label for="name">Name <span aria-hidden="true">*</span></label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        autocomplete="name"
+        required
+        aria-required="true"
+        aria-describedby="name-error"
+        placeholder="Your full name"
+      />
+      <p class="field__error" id="name-error" data-error-for="name" hidden></p>
+    </div>
+
+    <div class="field">
+      <label for="email">Email <span aria-hidden="true">*</span></label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        autocomplete="email"
+        inputmode="email"
+        required
+        aria-required="true"
+        aria-describedby="email-error"
+        placeholder="you@company.com"
+      />
+      <p class="field__error" id="email-error" data-error-for="email" hidden></p>
+    </div>
+
+    <div class="field">
+      <label for="phone">Phone <span class="opt">(optional)</span></label>
+      <input
+        type="tel"
+        id="phone"
+        name="phone"
+        autocomplete="tel"
+        inputmode="tel"
+        aria-describedby="phone-error"
+        placeholder="+1 555 000 0000"
+      />
+      <p class="field__error" id="phone-error" data-error-for="phone" hidden></p>
+    </div>
+
+    <div class="field">
+      <label for="project-type">Project type <span aria-hidden="true">*</span></label>
+      <select id="project-type" name="project_type" required aria-required="true" aria-describedby="project-type-error">
+        <option value="">Select one…</option>
+        {
+          projectTypes.map((t) => (
+            <option value={t} selected={t === defaultType}>
+              {t}
+            </option>
+          ))
+        }
+      </select>
+      <p class="field__error" id="project-type-error" data-error-for="project-type" hidden></p>
+    </div>
+
+    <div class="field">
+      <label for="budget">Budget range <span class="opt">(optional)</span></label>
+      <select id="budget" name="budget">
+        <option value="">Select a range…</option>
+        {budgets.map((b) => <option value={b}>{b}</option>)}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="timeline">Timeline <span class="opt">(optional)</span></label>
+      <select id="timeline" name="timeline">
+        <option value="">Select timing…</option>
+        {timelines.map((t) => <option value={t}>{t}</option>)}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="contact-method">Preferred contact method <span class="opt">(optional)</span></label>
+      <select id="contact-method" name="contact_method">
+        <option value="">No preference</option>
+        {preferences.map((p) => <option value={p}>{p}</option>)}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="contact-time">Best time to reach you <span class="opt">(optional)</span></label>
+      <select id="contact-time" name="contact_time">
+        <option value="">Any time</option>
+        {times.map((t) => <option value={t}>{t}</option>)}
+      </select>
+    </div>
+
+    <div class="field field--full">
+      <label for="message">Project details <span aria-hidden="true">*</span></label>
+      <textarea
+        id="message"
+        name="message"
+        rows="6"
+        required
+        aria-required="true"
+        minlength="20"
+        aria-describedby="message-hint message-error"
+        placeholder="What are you building, who is it for, and what does success look like?"
+      ></textarea>
+      <p class="field__hint" id="message-hint">A couple of sentences is plenty — 20 characters minimum.</p>
+      <p class="field__error" id="message-error" data-error-for="message" hidden></p>
+    </div>
+  </div>
+
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit" data-submit>Send project details</button>
+    <p class="form__aside">
+      Or reach me directly:
+      <a href={`mailto:${site.email}`}>{site.email}</a>
+      {
+        site.phone && (
+          <>
+            {' '}· <a href={`tel:${site.phone}`}>{site.phoneDisplay ?? site.phone}</a>
+          </>
+        )
+      }
+    </p>
+  </div>
+
+  <!-- Success state -->
+  <div class="form__success" data-success hidden tabindex="-1" role="status" aria-live="polite">
+    <div class="form__success-icon" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5"></path>
+      </svg>
+    </div>
+    <h3>Thanks! I'll reply within 1 business day.</h3>
+    <p>
+      Your enquiry is on its way to <strong>{site.email}</strong>. If it's urgent, reach me now:
+    </p>
+    <div class="btn-row">
+      <a class="btn btn--primary" href={`mailto:${site.email}?subject=New%20project%20enquiry`}>
+        Email me directly
+      </a>
+      {
+        site.phone && (
+          <a class="btn btn--ghost" href={`tel:${site.phone}`}>
+            Call {site.phoneDisplay ?? site.phone}
+          </a>
+        )
+      }
+    </div>
+    <button class="form__reset" type="button" data-reset>Send another message</button>
+  </div>
+</form>
+
+<style>
+  .form {
+    position: relative;
+  }
+  .form__intro {
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    margin-bottom: var(--sp-5);
+  }
+  abbr {
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form__grid {
+    display: grid;
+    gap: clamp(1rem, 2.2vw, 1.35rem);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 680px) {
+    .form__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .field--full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  label {
+    font-size: var(--t-sm);
+    font-weight: 620;
+    color: var(--ink);
+  }
+  .opt {
+    font-weight: 500;
+    color: var(--ink-3);
+    font-size: var(--t-xs);
+  }
+
+  input,
+  select,
+  textarea {
+    font: inherit;
+    font-size: var(--t-base);
+    color: var(--ink);
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem 0.95rem;
+    width: 100%;
+    min-height: 48px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%236b7280' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.4rem;
+    cursor: pointer;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 140px;
+    line-height: 1.6;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ink-3);
+    opacity: 0.75;
+  }
+  input:hover,
+  select:hover,
+  textarea:hover {
+    border-color: var(--ink-3);
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--tint);
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+  }
+
+  [aria-invalid='true'] {
+    border-color: var(--err);
+    background: var(--err-bg);
+  }
+  [aria-invalid='true']:focus {
+    box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.14);
+  }
+
+  .field__hint {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    margin: 0;
+  }
+  .field__error {
+    font-size: var(--t-xs);
+    color: var(--err);
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+  }
+  .field__error::before {
+    content: '!';
+    display: inline-grid;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--err);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    flex: none;
+  }
+
+  .form__actions {
+    margin-top: var(--sp-5);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-4);
+  }
+  .form__aside {
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    margin: 0;
+  }
+  .form__aside a {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .form__success {
+    border: 1px solid rgba(21, 128, 61, 0.25);
+    background: var(--ok-bg);
+    border-radius: var(--radius);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    text-align: center;
+    outline: none;
+  }
+  .form__success-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--ok);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    margin: 0 auto var(--sp-4);
+  }
+  .form__success h3 {
+    color: var(--ink);
+    font-size: var(--t-lg);
+  }
+  .form__success p {
+    color: var(--ink-2);
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+  .form__success .btn-row {
+    justify-content: center;
+    margin-top: var(--sp-5);
+  }
+  .form__reset {
+    margin-top: var(--sp-5);
+    background: none;
+    border: 0;
+    font: inherit;
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+  .form__reset:hover {
+    color: var(--ink);
+  }
+
+  .form.is-sent .form__grid,
+  .form.is-sent .form__actions,
+  .form.is-sent .form__intro {
+    display: none;
+  }
+</style>
+
+<script>
+  // Progressive-enhancement form validation + success state.
+  // Works with the HTML `required` attributes as a baseline, so the form
+  // still submits server-side if this script never runs.
+  const EMAIL = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+
+  const messages: Record<string, string> = {
+    name: 'Please tell me your name.',
+    email: 'Please enter a valid email address.',
+    phone: 'That phone number looks too short — check the digits.',
+    'project-type': 'Please choose a project type.',
+    message: 'Please describe the project — at least 20 characters.',
+  };
+
+  const validate = (el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement) => {
+    const id = el.id;
+    const value = (el.value || '').trim();
+    let error = '';
+
+    if (el.hasAttribute('required') && !value) {
+      error = messages[id] ?? 'This field is required.';
+    } else if (id === 'email' && value && !EMAIL.test(value)) {
+      error = messages.email;
+    } else if (id === 'phone' && value && value.replace(/\D/g, '').length < 7) {
+      error = messages.phone;
+    } else if (id === 'message' && value && value.length < 20) {
+      error = messages.message;
+    }
+
+    const errorEl = document.querySelector<HTMLElement>(`[data-error-for="${id}"]`);
+    if (errorEl) {
+      errorEl.textContent = error;
+      errorEl.hidden = !error;
+    }
+    el.setAttribute('aria-invalid', error ? 'true' : 'false');
+    return !error;
+  };
+
+    // Deep-link prefill, e.g. /contact/?type=Branding — used by contextual CTAs.
+    // Only sets the value if it matches a real option, so it can never produce
+    // an invalid selection.
+    const prefill = new URLSearchParams(location.search).get('type');
+
+    document.querySelectorAll<HTMLFormElement>('[data-contact-form]').forEach((form) => {
+    if (prefill) {
+      const select = form.querySelector<HTMLSelectElement>('#project-type');
+      if (select) {
+        const needle = prefill.toLowerCase();
+        // Exact match first, then a looser containment match so contextual
+        // links like ?type=Branding still land on "Branding / Identity".
+        const match =
+          Array.from(select.options).find((o) => o.value.toLowerCase() === needle) ??
+          Array.from(select.options).find(
+            (o) => o.value && (o.value.toLowerCase().includes(needle) || needle.includes(o.value.toLowerCase())),
+          );
+        if (match) select.value = match.value;
+      }
+    }
+
+    const controls = Array.from(
+      form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+        'input:not([type="text"][tabindex="-1"]), textarea, select',
+      ),
+    ).filter((el) => el.id);
+
+    controls.forEach((el) => {
+      el.addEventListener('blur', () => validate(el));
+      el.addEventListener('input', () => {
+        if (el.getAttribute('aria-invalid') === 'true') validate(el);
+      });
+      el.addEventListener('change', () => validate(el));
+    });
+
+    const success = form.querySelector<HTMLElement>('[data-success]');
+    const reset = form.querySelector<HTMLButtonElement>('[data-reset]');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      // Honeypot — silently drop bot submissions.
+      const trap = form.querySelector<HTMLInputElement>('#company-website');
+      if (trap && trap.value) return;
+
+      const invalid = controls.filter((el) => !validate(el));
+      if (invalid.length) {
+        invalid[0].focus();
+        return;
+      }
+
+      form.classList.add('is-sent');
+      if (success) {
+        success.hidden = false;
+        success.focus();
+      }
+    });
+
+    reset?.addEventListener('click', () => {
+      form.reset();
+      form.classList.remove('is-sent');
+      controls.forEach((el) => {
+        el.removeAttribute('aria-invalid');
+        const err = form.querySelector<HTMLElement>(`[data-error-for="${el.id}"]`);
+        if (err) err.hidden = true;
+      });
+      if (success) success.hidden = true;
+      form.querySelector<HTMLInputElement>('#name')?.focus();
+    });
+  });
+</script>

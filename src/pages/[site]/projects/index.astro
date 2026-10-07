@@ -1,0 +1,276 @@
+---
+import Base from '../../../layouts/Base.astro';
+import ProjectCard from '../../../components/ProjectCard.astro';
+import { sites, projectCategories } from '../../../data';
+import { motifFor } from '../../../lib/site';
+import { seoTitle, seoDescription } from '../../../lib/seo';
+
+export function getStaticPaths() {
+  return sites.map((site) => ({ params: { site: site.prefix }, props: { site } }));
+}
+
+const { site } = Astro.props;
+const motif = motifFor(site);
+const categories = projectCategories(site);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `${site.brand} — Project Gallery`,
+  description: site.seo.description,
+  url: new URL(`/${site.prefix}/projects/`, Astro.site).href,
+  isPartOf: { '@type': 'WebSite', name: site.brand, url: new URL(`/${site.prefix}/`, Astro.site).href },
+  about: site.services.map((s) => ({ '@type': 'Service', name: s.title })),
+};
+---
+
+<Base
+  site={site}
+  title={seoTitle([`Project Gallery`, site.role, site.city])}
+  description={seoDescription(
+    `Browse ${site.projects.length} ${site.servicePhrase.toLowerCase()} projects by ${site.name} in ${site.city}.`,
+    `Filter by ${categories.join(', ')} and open any project for the full brief.`,
+  )}
+  path={`/${site.prefix}/projects`}
+  jsonld={[schema]}
+>
+  <section class="page-head">
+    <div class="wrap">
+      <nav aria-label="Breadcrumb">
+        <ol class="crumbs">
+          <li><a href={`/${site.prefix}/`}>Home</a></li>
+          <li aria-current="page">Projects</li>
+        </ol>
+      </nav>
+
+      <div class="page-head__inner">
+        <div>
+          <span class="eyebrow">Portfolio</span>
+          <h1>Project gallery</h1>
+          <p class="lead">
+            {site.projects.length} selected projects — {site.servicePhrase.toLowerCase()} work for{' '}
+            {site.clientsPhrase}. Open any card for the full brief, process and outcome.
+          </p>
+        </div>
+        <ul class="page-head__stats">
+          <li><strong>{site.projects.length}</strong><span>Projects</span></li>
+          <li><strong>{categories.length}</strong><span>Categories</span></li>
+          <li><strong>{site.yearsExperience}+</strong><span>Years</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="gallery-title">
+    <div class="wrap">
+      <h2 class="vh" id="gallery-title">All projects</h2>
+
+      <div class="filters">
+        <div class="filters__row">
+          <span class="filters__label" id="filter-label">Filter by category</span>
+          <div class="pills" role="group" aria-labelledby="filter-label" data-filters>
+            <button class="pill" type="button" data-filter="all" aria-pressed="true">All</button>
+            {
+              categories.map((c) => (
+                <button class="pill" type="button" data-filter={c} aria-pressed="false">
+                  {c}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+
+        <p class="filters__count" data-count role="status" aria-live="polite">
+          Showing {site.projects.length} of {site.projects.length} projects
+        </p>
+      </div>
+
+      <div class="grid grid--3 gallery" data-gallery>
+        {
+          site.projects.map((p) => (
+            <div data-category={p.category} class="gallery__item">
+              <ProjectCard project={p} site={site} motif={motif} />
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="empty" data-empty hidden>
+        <p>No projects in this category yet.</p>
+        <button class="btn btn--ghost btn--sm" type="button" data-clear>Show all projects</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--night section--tight" aria-labelledby="cta-title">
+    <div class="wrap cta-band">
+      <div>
+        <h2 id="cta-title">Have a project in mind?</h2>
+        <p>Tell me the brief and I'll come back with a scope, a timeline and a price within 1 business day.</p>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn--light" href={`/${site.prefix}/contact/`}>Request a quote</a>
+        <a class="btn btn--onnight" href={`/${site.prefix}/case-studies/`}>See case studies</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-head {
+    background:
+      radial-gradient(100% 80% at 15% 0%, var(--tint) 0%, transparent 60%),
+      var(--paper-2);
+    border-bottom: 1px solid var(--line-soft);
+    padding-block: clamp(1.5rem, 3vw, 2.25rem) clamp(2.5rem, 5vw, 4rem);
+  }
+  .page-head__inner {
+    display: grid;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: end;
+  }
+  @media (min-width: 860px) {
+    .page-head__inner {
+      grid-template-columns: 1fr auto;
+    }
+  }
+  .page-head__inner h1 {
+    margin-bottom: var(--sp-4);
+  }
+  .page-head__stats {
+    list-style: none;
+    display: flex;
+    gap: clamp(1.25rem, 3vw, 2.5rem);
+  }
+  .page-head__stats li {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .page-head__stats strong {
+    font-family: var(--display);
+    font-size: var(--t-xl);
+    font-weight: 720;
+    letter-spacing: -0.03em;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .page-head__stats span {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-4);
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+    padding-bottom: clamp(1.25rem, 2.5vw, 1.75rem);
+    border-bottom: 1px solid var(--line);
+  }
+  .filters__label {
+    display: block;
+    font-size: var(--t-xs);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: var(--sp-3);
+  }
+  .filters__count {
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .gallery {
+    align-items: stretch;
+  }
+  .gallery__item {
+    display: flex;
+  }
+  .gallery__item > :global(*) {
+    flex: 1;
+    width: 100%;
+  }
+  .gallery__item[hidden] {
+    display: none;
+  }
+
+  .empty {
+    text-align: center;
+    padding: clamp(3rem, 8vw, 5rem) var(--sp-4);
+    border: 1.5px dashed var(--line);
+    border-radius: var(--radius-lg);
+    color: var(--ink-3);
+  }
+  .empty p {
+    font-size: var(--t-md);
+    margin-bottom: var(--sp-4);
+  }
+
+  .cta-band {
+    display: grid;
+    gap: clamp(1.5rem, 4vw, 2.5rem);
+    align-items: center;
+  }
+  @media (min-width: 820px) {
+    .cta-band {
+      grid-template-columns: 1fr auto;
+    }
+  }
+  .cta-band h2 {
+    font-size: var(--t-xl);
+    margin-bottom: var(--sp-3);
+  }
+  .cta-band p {
+    margin: 0;
+    max-width: 40rem;
+  }
+</style>
+
+<script>
+  const gallery = document.querySelector<HTMLElement>('[data-gallery]');
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const count = document.querySelector<HTMLElement>('[data-count]');
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+  const clear = document.querySelector<HTMLButtonElement>('[data-clear]');
+
+  if (gallery && buttons.length) {
+    const items = Array.from(gallery.querySelectorAll<HTMLElement>('[data-category]'));
+    const total = items.length;
+
+    const apply = (filter: string) => {
+      let visible = 0;
+      items.forEach((item) => {
+        const show = filter === 'all' || item.dataset.category === filter;
+        item.hidden = !show;
+        if (show) visible++;
+      });
+
+      buttons.forEach((b) =>
+        b.setAttribute('aria-pressed', String(b.dataset.filter === filter)),
+      );
+
+      if (count) {
+        count.textContent = `Showing ${visible} of ${total} project${total === 1 ? '' : 's'}${
+          filter === 'all' ? '' : ` in ${filter}`
+        }`;
+      }
+      if (empty) empty.hidden = visible !== 0;
+    };
+
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => apply(b.dataset.filter ?? 'all')),
+    );
+    clear?.addEventListener('click', () => apply('all'));
+
+    // Support deep links like /projects/#Branding
+    const hash = decodeURIComponent(location.hash.slice(1));
+    if (hash && [...buttons].some((b) => b.dataset.filter === hash)) apply(hash);
+  }
+</script>

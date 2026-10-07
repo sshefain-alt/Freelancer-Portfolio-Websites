@@ -1,0 +1,424 @@
+---
+import { sites } from '../data';
+import { seoTitle, seoDescription } from '../lib/seo';
+
+const title = seoTitle([
+  'Freelancer Portfolio Websites',
+  'Web, Photo, Video & Architecture',
+]);
+const description = seoDescription(
+  'Four complete, template-driven portfolio websites for freelancers — Web Designer, Photographer, Videographer and Architect.',
+  'Case studies, project galleries and lead-generating contact forms.',
+);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href="https://example.com/" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Freelancer Portfolio Websites" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content="https://example.com/" />
+    <meta property="og:image" content="https://example.com/og-default.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Four freelancer portfolio website templates" />
+    <meta property="og:locale" content="en_GB" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://example.com/og-default.png" />
+    <meta name="theme-color" content="#0e1015" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="generator" content={Astro.generator} />
+
+    <style is:global>
+      :root {
+        --ink: #0e1015;
+        --ink-2: #3d434f;
+        --ink-3: #6b7280;
+        --paper: #fff;
+        --paper-2: #f7f7f5;
+        --line: rgba(14, 16, 21, 0.12);
+        --line-soft: rgba(14, 16, 21, 0.07);
+        --t-xs: 0.78rem;
+        --t-sm: 0.9rem;
+        --t-base: 1rem;
+        --t-md: 1.15rem;
+        --t-lg: 1.5rem;
+        --t-xl: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+        --t-hero: clamp(2.25rem, 1.5rem + 3.4vw, 4rem);
+        --gutter: clamp(1.15rem, 4vw, 2.5rem);
+        --radius: 16px;
+        --display: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+          sans-serif;
+        --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper-2);
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: var(--display);
+        line-height: 1.08;
+        letter-spacing: -0.025em;
+        margin: 0;
+        font-weight: 700;
+        text-wrap: balance;
+      }
+      p {
+        margin: 0;
+        color: var(--ink-2);
+      }
+      a {
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid #4f46e5;
+        outline-offset: 3px;
+        border-radius: 4px;
+      }
+      .wrap {
+        width: min(100% - var(--gutter) * 2, 74rem);
+        margin-inline: auto;
+      }
+
+      .top {
+        background: radial-gradient(90% 70% at 12% 0%, rgba(79, 70, 229, 0.13) 0%, transparent 60%),
+          #0e1015;
+        color: #fff;
+        padding: clamp(3.5rem, 9vw, 7rem) 0 clamp(3rem, 7vw, 5.5rem);
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-size: var(--t-xs);
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #a5b4fc;
+        margin-bottom: 1.25rem;
+      }
+      .eyebrow::before {
+        content: '';
+        width: 1.75rem;
+        height: 2px;
+        background: currentColor;
+      }
+      .top h1 {
+        font-size: var(--t-hero);
+        max-width: 18ch;
+        margin-bottom: 1.25rem;
+      }
+      .top h1 em {
+        font-style: normal;
+        color: #a5b4fc;
+      }
+      .lead {
+        font-size: var(--t-md);
+        max-width: 58ch;
+        color: rgba(255, 255, 255, 0.75);
+      }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        list-style: none;
+        margin-top: 2rem;
+        padding: 0;
+      }
+      .badges li {
+        font-size: var(--t-xs);
+        font-weight: 600;
+        padding: 0.4rem 0.85rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .sites {
+        padding-block: clamp(3rem, 7vw, 5rem);
+      }
+      .sites__head {
+        max-width: 52rem;
+        margin-bottom: clamp(2rem, 5vw, 3rem);
+      }
+      .sites__head h2 {
+        font-size: var(--t-xl);
+        margin-bottom: 0.75rem;
+      }
+      .grid {
+        display: grid;
+        gap: clamp(1.25rem, 3vw, 1.75rem);
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 620px) {
+        .grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .site-card {
+        background: var(--paper);
+        border: 1px solid var(--line-soft);
+        border-radius: var(--radius);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      .site-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 44px -26px rgba(14, 16, 21, 0.45);
+        border-color: var(--line);
+      }
+      .site-card__swatch {
+        height: 8px;
+        background: var(--accent, #4f46e5);
+      }
+      .site-card__body {
+        padding: clamp(1.35rem, 3vw, 1.85rem);
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        flex: 1;
+      }
+      .site-card__kicker {
+        font-size: var(--t-xs);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent, #4f46e5);
+      }
+      .site-card h3 {
+        font-size: var(--t-lg);
+      }
+      .site-card__desc {
+        font-size: var(--t-sm);
+        color: var(--ink-3);
+        line-height: 1.6;
+      }
+      .site-card__meta {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid var(--line-soft);
+      }
+      .site-card__meta li {
+        font-size: var(--t-xs);
+        font-weight: 600;
+        background: var(--paper-2);
+        border-radius: 6px;
+        padding: 0.25rem 0.6rem;
+        color: var(--ink-2);
+      }
+      .site-card__go {
+        font-size: var(--t-sm);
+        font-weight: 650;
+        color: var(--accent, #4f46e5);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .notes {
+        background: #0e1015;
+        color: rgba(255, 255, 255, 0.72);
+        padding-block: clamp(2.75rem, 6vw, 4.5rem);
+      }
+      .notes h2 {
+        color: #fff;
+        font-size: var(--t-xl);
+        margin-bottom: 1.25rem;
+      }
+      .notes__grid {
+        display: grid;
+        gap: clamp(1.25rem, 3vw, 2rem);
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 760px) {
+        .notes__grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .note {
+        border-top: 2px solid #4f46e5;
+        padding-top: 1rem;
+      }
+      .note h3 {
+        color: #fff;
+        font-size: var(--t-md);
+        margin-bottom: 0.5rem;
+      }
+      .note p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: var(--t-sm);
+        line-height: 1.65;
+      }
+      code {
+        background: rgba(255, 255, 255, 0.12);
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+        font-size: 0.88em;
+      }
+
+      .foot {
+        background: #08090c;
+        color: rgba(255, 255, 255, 0.5);
+        padding-block: 2rem;
+        font-size: var(--t-xs);
+      }
+      .foot .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: space-between;
+      }
+      .vh {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+    </style>
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Freelancer Portfolio Websites',
+      url: 'https://example.com/',
+      description,
+      hasPart: sites.map((s) => ({
+        '@type': 'WebSite',
+        name: `${s.brand} — ${s.label} portfolio`,
+        url: `https://example.com/${s.prefix}/`,
+      })),
+    })} />
+  </head>
+
+  <body>
+    <a class="vh" href="#main">Skip to content</a>
+
+    <header class="top" id="main">
+      <div class="wrap">
+        <span class="eyebrow">4 complete websites · one template system</span>
+        <h1>Portfolio websites built to <em>win freelance work</em></h1>
+        <p class="lead">
+          Each site below is a fully static, production-ready portfolio for a different freelance
+          discipline. Real content, case studies with results, a filterable project gallery, and a
+          validated contact form — with per-page SEO, OpenGraph tags and schema.org structured data
+          throughout.
+        </p>
+        <ul class="badges">
+          <li>Static HTML — near-zero JavaScript</li>
+          <li>Mobile-first &amp; keyboard accessible</li>
+          <li>Responsive image pipeline</li>
+          <li>Clean slug URLs</li>
+          <li>Self-hosted — no build server needed</li>
+        </ul>
+      </div>
+    </header>
+
+    <section class="sites" aria-labelledby="sites-title">
+      <div class="wrap">
+        <div class="sites__head">
+          <h2 id="sites-title">Choose a site</h2>
+          <p>
+            Every profile re-themes the whole system — services, packages, process, gallery, case
+            studies, FAQ and colour palette all adapt to the discipline.
+          </p>
+        </div>
+
+        <div class="grid">
+          {
+            sites.map((s) => (
+              <a class="site-card" href={`./${s.prefix}/`} style={`--accent:${s.accent}`}>
+                <span class="site-card__swatch" aria-hidden="true" />
+                <span class="site-card__body">
+                  <span class="site-card__kicker">{s.label}</span>
+                  <h3>{s.brand}</h3>
+                  <p class="site-card__desc">
+                    {s.positioning} Based in {s.city}, {s.region}.
+                  </p>
+                  <ul class="site-card__meta">
+                    <li>{s.projects.length} projects</li>
+                    <li>{s.caseStudies.length} case studies</li>
+                    <li>{s.services.length} services</li>
+                    <li>{s.faqs.length} FAQs</li>
+                  </ul>
+                  <span class="site-card__go">
+                    Visit site
+                    <span aria-hidden="true">→</span>
+                  </span>
+                </span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-labelledby="notes-title">
+      <div class="wrap">
+        <h2 id="notes-title">How to make one of these yours</h2>
+        <div class="notes__grid">
+          <div class="note">
+            <h3>1. Edit the profile</h3>
+            <p>
+              Everything lives in <code>src/data/sites/</code> — one file per freelancer. Name, city,
+              services, packages, process, testimonials, FAQ, projects and case studies all come from
+              there.
+            </p>
+          </div>
+          <div class="note">
+            <h3>2. Swap in real images</h3>
+            <p>
+              Drop files into <code>src/assets/</code> using the names already referenced by each
+              project. They are picked up automatically and optimised into responsive AVIF/WebP. Until
+              then, on-brand SVG placeholders render instead.
+            </p>
+          </div>
+          <div class="note">
+            <h3>3. Point the form somewhere</h3>
+            <p>
+              The contact form validates and shows a success state client-side. Wire it to Formspree,
+              Netlify Forms or your own endpoint by setting the <code>action</code> in
+              <code>ContactForm.astro</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div class="wrap">
+        <span>Freelancer portfolio template system — {new Date().getFullYear()}</span>
+        <span>Static · SEO-ready · Accessible</span>
+      </div>
+    </footer>
+  </body>
+</html>

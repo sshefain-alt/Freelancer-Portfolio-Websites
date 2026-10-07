@@ -1,0 +1,26 @@
+{
+  "name": "freelancer-portfolios",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Template-driven portfolio websites for freelancers — Web Designers, Photographers, Videographers and Architects.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && node scripts/make-pdfs.mjs && node scripts/make-og.mjs && astro build && node scripts/sitemap.mjs && node scripts/audit.mjs",
+    "audit": "node scripts/audit.mjs",
+    "preview": "astro preview",
+    "serve": "node scripts/serve.mjs",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "astro": "^4.16.18"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true,
+    "sharp@0.33.5": true
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^5.9.3"
+  }
+}

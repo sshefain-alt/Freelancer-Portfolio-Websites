@@ -1,0 +1,510 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Ph from '../../../components/Ph.astro';
+import CaseStudyCard from '../../../components/CaseStudyCard.astro';
+import ContactForm from '../../../components/ContactForm.astro';
+import { sites } from '../../../data';
+import { motifFor } from '../../../lib/site';
+import { seoTitle, seoDescription } from '../../../lib/seo';
+
+export function getStaticPaths() {
+  return sites.flatMap((site) =>
+    site.caseStudies.map((caseStudy) => ({
+      params: { site: site.prefix, slug: caseStudy.slug },
+      props: { site, caseStudy },
+    })),
+  );
+}
+
+const { site, caseStudy: cs } = Astro.props;
+const motif = motifFor(site);
+const base = `/${site.prefix}`;
+
+const related = site.caseStudies.filter((c) => c.slug !== cs.slug).slice(0, 3);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: cs.title,
+  description: cs.challenge.slice(0, 200),
+  url: new URL(`${base}/case-study/${cs.slug}/`, Astro.site).href,
+  datePublished: cs.year,
+  author: { '@type': 'Person', name: site.name, jobTitle: site.role },
+  publisher: {
+    '@type': 'Organization',
+    name: site.brand,
+    url: new URL(`${base}/`, Astro.site).href,
+  },
+  about: { '@type': 'Thing', name: cs.tag },
+  keywords: [...cs.tools, ...cs.services].join(', '),
+};
+
+// "2 weeks" → ISO 8601 duration, where we can infer one.
+const timelineMatch = cs.timeline.match(/(\d+)\s*(week|day|month)/i);
+const durationIso = timelineMatch
+  ? `P${timelineMatch[1]}${timelineMatch[2][0].toUpperCase()}`
+  : undefined;
+---
+
+<Base
+  site={site}
+  title={seoTitle([`${cs.title}`, `${site.role} Case Study`, site.brand])}
+  description={seoDescription(
+    `${cs.challenge.slice(0, 90)}…`,
+    `Approach, timeline, tools and measurable results from ${site.name}, freelance ${site.role.toLowerCase()} in ${site.city}.`,
+  )}
+  path={`/${site.prefix}/case-study/${cs.slug}`}
+  jsonld={[
+    schema,
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CreativeWork',
+      name: cs.title,
+      creator: { '@type': 'Person', name: site.name },
+      dateCreated: cs.year,
+      ...(durationIso && { temporalCoverage: durationIso }),
+      keywords: cs.services.join(', '),
+    },
+  ]}
+  type="article"
+>
+  <!-- ─────────────────────────────────────────── Hero -->
+  <section class="cs-hero">
+    <div class="cs-hero__media">
+      <Ph
+        src={cs.cover}
+        alt={`Case study hero — ${cs.title}`}
+        motif={motif}
+        accent={site.accent}
+        loading="eager"
+        class="cs-hero__img"
+        sizes="100vw"
+      />
+      <div class="cs-hero__scrim" aria-hidden="true"></div>
+    </div>
+
+    <div class="wrap cs-hero__content">
+      <nav aria-label="Breadcrumb">
+        <ol class="crumbs crumbs--light">
+          <li><a href={`${base}/`}>Home</a></li>
+          <li><a href={`${base}/case-studies/`}>Case Studies</a></li>
+          <li aria-current="page">{cs.title}</li>
+        </ol>
+      </nav>
+
+      <span class="cs-hero__tag">Case study · {cs.tag}</span>
+      <h1>{cs.title}</h1>
+      <p class="cs-hero__lead">{cs.goal}</p>
+
+      <dl class="cs-hero__meta">
+        <div><dt>Client</dt><dd>{cs.client ?? site.brand}</dd></div>
+        <div><dt>Year</dt><dd>{cs.year}</dd></div>
+        <div><dt>Timeline</dt><dd>{cs.timeline.split('·')[0].trim()}</dd></div>
+        <div><dt>Services</dt><dd>{cs.services.length} delivered</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Results strip -->
+  {
+    cs.metrics && cs.metrics.length > 0 && (
+      <section class="cs-metrics" aria-label="Results at a glance">
+        <div class="wrap">
+          <h2 class="cs-metrics__title">Results</h2>
+          <ul class="stats">
+            {cs.metrics.map((m) => (
+              <li class="stat">
+                <span class="stat__value">{m.value}</span>
+                <span class="stat__label">{m.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ─────────────────────────────────────────── Body -->
+  <section class="section" aria-labelledby="cs-body-title">
+    <h2 class="vh" id="cs-body-title">Full case study</h2>
+    <div class="wrap cs-body">
+      <article class="cs-body__main">
+        <section class="cs-block" aria-labelledby="challenge-title">
+          <span class="cs-block__num">01</span>
+          <h3 id="challenge-title">The challenge</h3>
+          <p class="cs-block__lead">{cs.challenge}</p>
+        </section>
+
+        <section class="cs-block" aria-labelledby="goal-title">
+          <span class="cs-block__num">02</span>
+          <h3 id="goal-title">The goal</h3>
+          <p>{cs.goal}</p>
+        </section>
+
+        <section class="cs-block" aria-labelledby="approach-title">
+          <span class="cs-block__num">03</span>
+          <h3 id="approach-title">Approach</h3>
+          <ol class="cs-steps">
+            {cs.approach.map((step, i) => (
+              <li>
+                <span class="cs-steps__n">{String(i + 1).padStart(2, '0')}</span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section class="cs-block" aria-labelledby="services-title">
+          <span class="cs-block__num">04</span>
+          <h3 id="services-title">Services provided</h3>
+          <ul class="chips">
+            {cs.services.map((s) => <li class="chip">{s}</li>)}
+          </ul>
+        </section>
+
+        <section class="cs-block" aria-labelledby="results-title">
+          <span class="cs-block__num">05</span>
+          <h3 id="results-title">Results</h3>
+          <p class="cs-block__lead">{cs.results}</p>
+        </section>
+
+        {
+          cs.gallery && cs.gallery.length > 0 && (
+            <section class="cs-block" aria-labelledby="cs-gallery-title">
+              <span class="cs-block__num">06</span>
+              <h3 id="cs-gallery-title">Gallery</h3>
+              <div class="cs-gallery">
+                {cs.gallery.map((img, i) => (
+                  <div class="media media--wide">
+                    <Ph
+                      src={img}
+                      alt={`${cs.title} — gallery image ${i + 1}`}
+                      motif={motif}
+                      accent={site.accent}
+                      sizes="(max-width: 800px) 100vw, 45vw"
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )
+        }
+      </article>
+
+      <aside class="cs-body__side" aria-label="Case study summary">
+        <div class="cs-side">
+          <h3>At a glance</h3>
+
+          <dl class="def-list">
+            <div><dt>Timeline</dt><dd>{cs.timeline}</dd></div>
+            <div><dt>Client</dt><dd>{cs.client ?? site.brand}</dd></div>
+            <div><dt>Year</dt><dd>{cs.year}</dd></div>
+            <div><dt>Category</dt><dd>{cs.category}</dd></div>
+          </dl>
+
+          <div class="cs-side__block">
+            <h4>Tools & technology</h4>
+            <ul class="chips">
+              {cs.tools.map((t) => <li class="chip">{t}</li>)}
+            </ul>
+          </div>
+
+          <a class="btn btn--primary cs-side__cta" href={`${base}/contact/`}>
+            Request a quote
+          </a>
+          <a class="btn btn--ghost" href={`${base}/case-studies/`}>← All case studies</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Next steps + form -->
+  <section class="section section--alt" id="contact" aria-labelledby="cs-contact-title">
+    <div class="wrap cs-cta">
+      <div class="cs-cta__copy">
+        <span class="eyebrow">Next steps</span>
+        <h2 id="cs-contact-title">Want this kind of result?</h2>
+        <p class="lead">
+          Tell me about your project. You'll get a considered reply from {site.name} — including a
+          suggested scope, timeline and price — within 1 business day.
+        </p>
+
+        <div class="btn-row cs-cta__buttons">
+          <a class="btn btn--primary" href={`${base}/contact/`}>Request a quote</a>
+          <a class="btn btn--ghost" href={`mailto:${site.email}`}>Email {site.email}</a>
+          {
+            site.phone && (
+              <a class="btn btn--ghost" href={`tel:${site.phone}`}>
+                Call {site.phoneDisplay ?? site.phone}
+              </a>
+            )
+          }
+        </div>
+      </div>
+
+      <div class="cs-cta__form">
+        <ContactForm site={site} defaultType={cs.tag} />
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Related -->
+  {
+    related.length > 0 && (
+      <section class="section" aria-labelledby="cs-related">
+        <div class="wrap">
+          <div class="section__head">
+            <span class="eyebrow">More proof</span>
+            <h2 id="cs-related">Other case studies</h2>
+          </div>
+          <div class="grid grid--3">
+            {related.map((c) => (
+              <CaseStudyCard caseStudy={c} site={site} motif={motif} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  /* Hero */
+  .cs-hero {
+    position: relative;
+    isolation: isolate;
+    padding-block: clamp(3rem, 8vw, 6rem) clamp(2.5rem, 6vw, 4.5rem);
+    overflow: hidden;
+  }
+  .cs-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+  .cs-hero__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .cs-hero__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      rgba(8, 9, 13, 0.95) 0%,
+      rgba(8, 9, 13, 0.85) 48%,
+      rgba(8, 9, 13, 0.55) 100%
+    );
+  }
+  .crumbs--light li {
+    color: rgba(255, 255, 255, 0.65);
+  }
+  .crumbs--light a {
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .crumbs--light a:hover {
+    color: #fff;
+  }
+
+  .cs-hero__tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: var(--t-xs);
+    font-weight: 680;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    margin-bottom: var(--sp-4);
+  }
+  .cs-hero h1 {
+    color: #fff;
+    max-width: 22ch;
+    margin-bottom: var(--sp-4);
+  }
+  .cs-hero__lead {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: var(--t-md);
+    max-width: 58ch;
+    margin-bottom: var(--sp-6);
+  }
+  .cs-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-5) clamp(1.5rem, 4vw, 3rem);
+    margin: 0;
+    padding-top: var(--sp-5);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .cs-hero__meta dt {
+    font-size: var(--t-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 0.3rem;
+  }
+  .cs-hero__meta dd {
+    margin: 0;
+    font-weight: 620;
+    font-size: var(--t-sm);
+    color: #fff;
+  }
+
+  /* Results strip */
+  .cs-metrics {
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line-soft);
+    padding-block: clamp(1.75rem, 4vw, 2.75rem);
+  }
+  .cs-metrics__title {
+    font-size: var(--t-xs);
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-family: var(--sans);
+    font-weight: 700;
+    margin-bottom: var(--sp-5);
+  }
+
+  /* Body */
+  .cs-body {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+  }
+  @media (min-width: 940px) {
+    .cs-body {
+      grid-template-columns: 1fr 21rem;
+      align-items: start;
+    }
+  }
+
+  .cs-block {
+    padding-bottom: clamp(2rem, 4vw, 3rem);
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .cs-block:last-child {
+    border-bottom: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .cs-block__num {
+    font-family: var(--display);
+    font-size: var(--t-xs);
+    font-weight: 750;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: var(--sp-3);
+  }
+  .cs-block h3 {
+    font-size: var(--t-xl);
+    margin-bottom: var(--sp-4);
+  }
+  .cs-block p {
+    font-size: var(--t-base);
+    line-height: 1.75;
+  }
+  .cs-block__lead {
+    font-size: var(--t-md) !important;
+    color: var(--ink);
+    line-height: 1.7 !important;
+  }
+
+  .cs-steps {
+    list-style: none;
+    display: grid;
+    gap: var(--sp-4);
+    counter-reset: s;
+  }
+  .cs-steps li {
+    display: flex;
+    gap: var(--sp-4);
+    align-items: flex-start;
+    padding: var(--sp-4);
+    background: var(--paper-2);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--accent);
+    font-size: var(--t-sm);
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+  .cs-steps__n {
+    font-family: var(--display);
+    font-weight: 750;
+    color: var(--accent);
+    font-size: var(--t-sm);
+    flex: none;
+    letter-spacing: 0.04em;
+  }
+
+  .cs-gallery {
+    display: grid;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
+  }
+  @media (min-width: 700px) {
+    .cs-gallery {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .cs-side {
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: clamp(1.25rem, 2.5vw, 1.6rem);
+    display: grid;
+    gap: var(--sp-4);
+    position: sticky;
+    top: 6rem;
+  }
+  .cs-side h3 {
+    font-size: var(--t-md);
+    margin: 0;
+  }
+  .cs-side h4 {
+    font-size: var(--t-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: var(--sp-3);
+    font-family: var(--sans);
+  }
+  .cs-side__block {
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--line);
+  }
+  .cs-side .btn {
+    width: 100%;
+  }
+  .cs-side__cta {
+    margin-top: var(--sp-2);
+  }
+
+  /* CTA + form */
+  .cs-cta {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: start;
+  }
+  @media (min-width: 940px) {
+    .cs-cta {
+      grid-template-columns: 0.85fr 1.15fr;
+    }
+  }
+  .cs-cta__copy h2 {
+    font-size: var(--t-xl);
+    margin-bottom: var(--sp-4);
+  }
+  .cs-cta__buttons {
+    margin-top: var(--sp-5);
+  }
+  .cs-cta__form {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    box-shadow: var(--shadow);
+  }
+</style>

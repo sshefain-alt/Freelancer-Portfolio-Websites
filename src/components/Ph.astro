@@ -1,0 +1,188 @@
+---
+/**
+ * Visual placeholder system.
+ *
+ * Every image slot in the site renders through this component. If you drop a
+ * real photo into `src/assets/`, it is picked up automatically and optimised
+ * into responsive WebP/AVIF with a `srcset`. Otherwise a crisp, on-brand SVG
+ * placeholder is generated inline — zero network requests, zero layout shift.
+ */
+import { Image } from 'astro:assets';
+
+interface Props {
+  /** File name inside src/assets, e.g. "aurora.jpg" */
+  src?: string;
+  /** Accessible description — required so images are never silent */
+  alt: string;
+  motif?: 'web' | 'photo' | 'video' | 'architecture' | 'portrait' | 'abstract';
+  accent?: string;
+  class?: string;
+  widths?: number[];
+  sizes?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const { src, alt, motif = 'abstract', accent = '#4f46e5', class: cls, widths, sizes, loading } =
+  Astro.props;
+
+// Eagerly import every real asset so Vite can process it.
+// `import: 'default'` unwraps each module, so the value is the metadata itself.
+const assets = import.meta.glob<ImageMetadata>('../assets/*.{jpg,jpeg,png,webp,avif}', {
+  eager: true,
+  import: 'default',
+});
+
+const real = src ? assets[`../assets/${src}`] : undefined;
+
+// Deterministic seed so the same slot always looks identical.
+const seed = [...(src ?? alt)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const rot = (n: number) => ((seed >> n) & 3) * 15 - 22;
+const flip = seed % 2 ? 1 : -1;
+const uid = `ph-${seed.toString(36)}-${motif}`;
+---
+
+{
+  real ? (
+    <Image
+      src={real}
+      alt={alt}
+      class={cls}
+      widths={widths ?? [400, 640, 960, 1400]}
+      sizes={sizes ?? '(max-width: 720px) 100vw, 50vw'}
+      loading={loading ?? 'lazy'}
+      decoding="async"
+    />
+  ) : (
+    <svg
+      class={cls}
+      viewBox="0 0 1200 900"
+      role="img"
+      aria-label={alt}
+      preserveAspectRatio="xMidYMid slice"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <title>{alt}</title>
+      <defs>
+        <linearGradient id={`${uid}-bg`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#12151d" />
+          <stop offset="55%" stop-color="#191d27" />
+          <stop offset="100%" stop-color="#0d0f15" />
+        </linearGradient>
+        <radialGradient id={`${uid}-glow`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color={accent} stop-opacity="0.72" />
+          <stop offset="60%" stop-color={accent} stop-opacity="0.16" />
+          <stop offset="100%" stop-color={accent} stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id={`${uid}-sheen`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+        </linearGradient>
+        <pattern id={`${uid}-grid`} width="60" height="60" patternUnits="userSpaceOnUse">
+          <path d="M60 0H0V60" fill="none" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1" />
+        </pattern>
+      </defs>
+
+      <rect width="1200" height="900" fill={`url(#${uid}-bg)`} />
+      <rect width="1200" height="900" fill={`url(#${uid}-grid)`} />
+      <circle cx={900 + rot(0) * 6} cy={180 + rot(2) * 5} r="440" fill={`url(#${uid}-glow)`} />
+      <circle cx={220 + rot(4) * 5} cy={760 + rot(6) * 4} r="330" fill={`url(#${uid}-glow)`} opacity=".55" />
+
+      <!-- Motif -->
+      {motif === 'web' && (
+        <g transform={`translate(240 210) rotate(${rot(1)} 360 240)`} opacity=".92">
+          <rect x="0" y="0" width="720" height="480" rx="18" fill="#0b0d13" stroke="#ffffff" stroke-opacity=".14" />
+          <rect x="0" y="0" width="720" height="46" rx="18" fill="#ffffff" fill-opacity=".05" />
+          <g fill={accent} fill-opacity=".85">
+            <circle cx="30" cy="23" r="7" /><circle cx="54" cy="23" r="7" /><circle cx="78" cy="23" r="7" />
+          </g>
+          <rect x="40" y="86" width="300" height="26" rx="8" fill="#ffffff" fill-opacity=".82" />
+          <rect x="40" y="128" width="200" height="18" rx="7" fill="#ffffff" fill-opacity=".24" />
+          <rect x="40" y="176" width="260" height="14" rx="7" fill="#ffffff" fill-opacity=".15" />
+          <rect x="40" y="204" width="230" height="14" rx="7" fill="#ffffff" fill-opacity=".15" />
+          <rect x="40" y="256" width="140" height="42" rx="21" fill={accent} />
+          <rect x="400" y="86" width="280" height="340" rx="14" fill={accent} fill-opacity=".2" stroke={accent} stroke-opacity=".55" />
+          <rect x="424" y="112" width="232" height="150" rx="10" fill="#ffffff" fill-opacity=".1" />
+          <rect x="424" y="284" width="160" height="16" rx="8" fill="#ffffff" fill-opacity=".5" />
+          <rect x="424" y="316" width="220" height="12" rx="6" fill="#ffffff" fill-opacity=".2" />
+          <rect x="424" y="342" width="190" height="12" rx="6" fill="#ffffff" fill-opacity=".2" />
+          <rect x="424" y="384" width="110" height="30" rx="15" fill="#ffffff" fill-opacity=".9" />
+        </g>
+      )}
+
+      {motif === 'photo' && (
+        <g transform={`translate(600 450) rotate(${rot(3)})`}>
+          <g fill="none" stroke={accent} stroke-width="14" stroke-linejoin="round" opacity=".9">
+            <circle cx="0" cy="0" r="215" stroke-opacity=".55" />
+            <circle cx="0" cy="0" r="150" stroke-opacity=".8" />
+          </g>
+          <g fill={accent} opacity=".55">
+            <path d="M0 -215 A215 215 0 0 1 186 -107 L130 -75 A150 150 0 0 0 0 -150 Z" />
+            <path d="M186 107 A215 215 0 0 1 0 215 L0 150 A150 150 0 0 0 130 75 Z" transform="rotate(72)" />
+            <path d="M0 215 A215 215 0 0 1 -186 107 L-130 75 A150 150 0 0 0 0 150 Z" transform="rotate(144)" />
+            <path d="M-186 -107 A215 215 0 0 1 0 -215 L0 -150 A150 150 0 0 0 -130 -75 Z" transform="rotate(216)" />
+            <path d="M-186 107 A215 215 0 0 1 -186 -107 L-130 -75 A150 150 0 0 0 -130 75 Z" transform="rotate(288)" />
+          </g>
+          <circle cx="0" cy="0" r="62" fill={`url(#${uid}-sheen)`} />
+          <circle cx="0" cy="0" r="62" fill="#ffffff" fill-opacity=".16" />
+        </g>
+      )}
+
+      {motif === 'video' && (
+        <g transform="translate(150 300)">
+          <rect x="0" y="0" width="900" height="300" rx="16" fill="#0b0d13" stroke="#ffffff" stroke-opacity=".14" />
+          {[...Array(7)].map((_, i) => (
+            <rect x={24 + i * 126} y="24" width="102" height="76" rx="8" fill={accent} fill-opacity={0.14 + (i % 3) * 0.14} />
+          ))}
+          <rect x="24" y="132" width="852" height="4" rx="2" fill="#ffffff" fill-opacity=".14" />
+          <rect x="24" y="132" width={280 + (seed % 5) * 80} height="4" rx="2" fill={accent} />
+          <circle cx={304 + (seed % 5) * 80} cy="134" r="11" fill={accent} />
+          <rect x="24" y="164" width="852" height="52" rx="10" fill={accent} fill-opacity=".16" />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <rect x={40 + i * 170} y="178" width="130" height="24" rx="6" fill="#ffffff" fill-opacity={i === 2 ? 0.5 : 0.18} />
+          ))}
+          <rect x="24" y="234" width="410" height="42" rx="10" fill="#ffffff" fill-opacity=".1" />
+          <rect x="466" y="234" width="410" height="42" rx="10" fill={accent} fill-opacity=".35" />
+        </g>
+      )}
+
+      {motif === 'architecture' && (
+        <g transform={`translate(600 450) rotate(${rot(2) * 0.4})`}>
+          <rect x="-380" y="-300" width="760" height="600" fill="#0b0d13" stroke="#ffffff" stroke-opacity=".16" />
+          <g stroke={accent} stroke-opacity=".65" stroke-width="4" fill="none">
+            <path d="M-380 -60 H120 V300" />
+            <path d="M120 -300 V-60 H380" />
+            <path d="M-140 -60 V-300" />
+            <path d="M-380 140 H120" />
+            <rect x="-330" y="-10" width="180" height="140" rx="4" />
+            <rect x="170" y="-250" width="160" height="130" rx="4" />
+            <path d="M-140 -60 a60 60 0 0 1 60 60" stroke-dasharray="10 8" stroke-opacity=".8" />
+          </g>
+          <g stroke="#ffffff" stroke-opacity=".14" stroke-width="2">
+            {[...Array(11)].map((_, i) => <path d={`M${-380 + i * 76} -300 V300`} />)}
+            {[...Array(9)].map((_, i) => <path d={`M-380 ${-300 + i * 75} H380`} />)}
+          </g>
+          <rect x="-380" y="-300" width="760" height="600" fill="none" stroke={accent} stroke-width="6" stroke-opacity=".8" />
+        </g>
+      )}
+
+      {motif === 'portrait' && (
+        <g transform="translate(600 470)">
+          <circle cx="0" cy="-70" r="130" fill={accent} fill-opacity=".38" />
+          <path d="M-230 260 a230 250 0 0 1 460 0 Z" fill={accent} fill-opacity=".3" />
+          <circle cx="0" cy="-70" r="130" fill={`url(#${uid}-sheen)`} />
+        </g>
+      )}
+
+      {motif === 'abstract' && (
+        <g transform={`translate(600 450) rotate(${rot(5)}) scale(${flip} 1)`}>
+          <rect x="-330" y="-230" width="440" height="440" rx="36" fill={accent} fill-opacity=".28" />
+          <rect x="-140" y="-330" width="440" height="440" rx="36" fill="#ffffff" fill-opacity=".07" stroke="#ffffff" stroke-opacity=".18" />
+          <circle cx="140" cy="60" r="150" fill={accent} fill-opacity=".34" />
+          <rect x="-330" y="-230" width="440" height="440" rx="36" fill={`url(#${uid}-sheen)`} />
+        </g>
+      )}
+
+      <rect width="1200" height="900" fill={`url(#${uid}-sheen)`} opacity=".5" />
+    </svg>
+  )
+}

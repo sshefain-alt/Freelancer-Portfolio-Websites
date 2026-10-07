@@ -1,0 +1,408 @@
+---
+import Base from '../../layouts/Base.astro';
+import ContactForm from '../../components/ContactForm.astro';
+import { sites } from '../../data';
+import { seoTitle, seoDescription } from '../../lib/seo';
+
+export function getStaticPaths() {
+  return sites.map((site) => ({ params: { site: site.prefix }, props: { site } }));
+}
+
+const { site } = Astro.props;
+const base = `/${site.prefix}`;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  name: `Contact ${site.brand}`,
+  description: `Get a quote from ${site.name}, freelance ${site.role.toLowerCase()} in ${site.city}. Reply within 1 business day.`,
+  url: new URL(`${base}/contact/`, Astro.site).href,
+  mainEntity: {
+    '@type': 'Organization',
+    name: site.brand,
+    email: site.email,
+    telephone: site.phone,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: site.city,
+      addressRegion: site.region,
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'sales',
+      email: site.email,
+      telephone: site.phone,
+      availableLanguage: 'English',
+    },
+  },
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: site.faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answer },
+  })),
+};
+---
+
+<Base
+  site={site}
+  title={seoTitle([`Contact ${site.name}`, `${site.role} — ${site.city}`, 'Request a Quote'])}
+  description={seoDescription(
+    `Contact ${site.name}, freelance ${site.role.toLowerCase()} in ${site.city}, ${site.region}.`,
+    `Tell me about your project and I'll reply within 1 business day with a scope and a price.`,
+  )}
+  path={`/${site.prefix}/contact`}
+  jsonld={[schema, faqSchema]}
+>
+  <!-- ─────────────────────────────────────────── Head -->
+  <section class="page-head">
+    <div class="wrap">
+      <nav aria-label="Breadcrumb">
+        <ol class="crumbs">
+          <li><a href={`${base}/`}>Home</a></li>
+          <li aria-current="page">Contact</li>
+        </ol>
+      </nav>
+
+      <div class="page-head__grid">
+        <div>
+          <span class="eyebrow">Contact</span>
+          <h1>Tell me about your project</h1>
+          <p class="lead">
+            The more you share, the more useful my reply will be. Fill in the form and you'll hear
+            back from <strong>{site.name}</strong> — not an autoresponder — within
+            <strong>1 business day</strong>.
+          </p>
+        </div>
+
+        <ul class="assurances" aria-label="What happens next">
+          <li>
+            <span class="assurances__icon" aria-hidden="true">1</span>
+            <div>
+              <strong>You send the brief</strong>
+              <p>Scope, rough budget and timing — a few sentences is enough.</p>
+            </div>
+          </li>
+          <li>
+            <span class="assurances__icon" aria-hidden="true">2</span>
+            <div>
+              <strong>I reply within 1 business day</strong>
+              <p>With questions if needed, plus a suggested approach.</p>
+            </div>
+          </li>
+          <li>
+            <span class="assurances__icon" aria-hidden="true">3</span>
+            <div>
+              <strong>You get a real quote</strong>
+              <p>Fixed scope, timeline and price. No obligation either way.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Form + details -->
+  <section class="section" aria-labelledby="form-title">
+    <div class="wrap contact-grid">
+      <div class="contact-grid__form">
+        <h2 id="form-title" class="form-title">Project enquiry</h2>
+        <ContactForm site={site} />
+      </div>
+
+      <aside class="contact-grid__side" aria-label="Direct contact details">
+        <div class="direct">
+          <h2>Prefer to talk directly?</h2>
+          <p>Skip the form — either of these reaches me just as fast.</p>
+
+          <a class="direct__row" href={`mailto:${site.email}`}>
+            <span class="direct__label">Email</span>
+            <span class="direct__value">{site.email}</span>
+          </a>
+
+          {
+            site.phone && (
+              <a class="direct__row" href={`tel:${site.phone}`}>
+                <span class="direct__label">Phone</span>
+                <span class="direct__value">{site.phoneDisplay ?? site.phone}</span>
+              </a>
+            )
+          }
+
+          <div class="direct__row direct__row--static">
+            <span class="direct__label">Based in</span>
+            <span class="direct__value">
+              {site.city}, {site.region}
+            </span>
+          </div>
+
+          <div class="direct__row direct__row--static">
+            <span class="direct__label">Availability</span>
+            <span class="direct__value">{site.availability}</span>
+          </div>
+
+          <div class="btn-row direct__buttons">
+            <a
+              class="btn btn--primary"
+              href={`mailto:${site.email}?subject=${encodeURIComponent('New project enquiry')}`}
+            >
+              Email me
+            </a>
+            {
+              site.phone && (
+                <a class="btn btn--ghost" href={`tel:${site.phone}`}>
+                  Call now
+                </a>
+              )
+            }
+          </div>
+        </div>
+
+        <div class="direct direct--social">
+          <h3>Follow my work</h3>
+          <ul class="contact-social">
+            {
+              site.socials.map((s) => (
+                <li>
+                  <a href={s.href} target="_blank" rel="noopener noreferrer nofollow">
+                    {s.label} ↗
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── FAQ -->
+  <section class="section section--alt" aria-labelledby="contact-faq-title">
+    <div class="wrap-narrow">
+      <div class="section__head section__head--center">
+        <span class="eyebrow">Before you send</span>
+        <h2 id="contact-faq-title">Good to know</h2>
+      </div>
+
+      <div class="faq">
+        {
+          site.faqs.map((f, i) => (
+            <details class="faq__item" open={i === 0}>
+              <summary>{f.question}</summary>
+              <div class="faq__answer">
+                <p>{f.answer}</p>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────── Backup CTA -->
+  <section class="section section--night section--tight" aria-labelledby="backup-cta">
+    <div class="wrap backup">
+      <div>
+        <h2 id="backup-cta">Still deciding?</h2>
+        <p>
+          Look through the case studies first — they show exactly how I work, what things cost and
+          what changed for the client.
+        </p>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn--light" href={`${base}/case-studies/`}>Read case studies</a>
+        <a class="btn btn--onnight" href={`${base}/projects/`}>Browse projects</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-head {
+    background:
+      radial-gradient(100% 80% at 15% 0%, var(--tint) 0%, transparent 60%),
+      var(--paper-2);
+    border-bottom: 1px solid var(--line-soft);
+    padding-block: clamp(1.5rem, 3vw, 2.25rem) clamp(2.5rem, 5vw, 4rem);
+  }
+  .page-head__grid {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: start;
+  }
+  @media (min-width: 940px) {
+    .page-head__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .page-head h1 {
+    margin-bottom: var(--sp-4);
+  }
+  .page-head__grid strong {
+    color: var(--ink);
+    font-weight: 650;
+  }
+
+  .assurances {
+    list-style: none;
+    display: grid;
+    gap: var(--sp-4);
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.4rem, 3vw, 2rem);
+    box-shadow: var(--shadow);
+  }
+  .assurances li {
+    display: flex;
+    gap: var(--sp-4);
+    align-items: flex-start;
+  }
+  .assurances__icon {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: var(--t-sm);
+    font-weight: 720;
+  }
+  .assurances strong {
+    display: block;
+    font-size: var(--t-base);
+    color: var(--ink);
+    margin-bottom: 0.2rem;
+  }
+  .assurances p {
+    margin: 0;
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    line-height: 1.55;
+  }
+
+  /* Grid */
+  .contact-grid {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: start;
+  }
+  @media (min-width: 940px) {
+    .contact-grid {
+      grid-template-columns: 1.35fr 1fr;
+    }
+  }
+  .form-title {
+    font-size: var(--t-xl);
+    margin-bottom: var(--sp-5);
+  }
+
+  .contact-grid__side {
+    display: grid;
+    gap: clamp(1.25rem, 3vw, 1.75rem);
+    position: sticky;
+    top: 6rem;
+  }
+
+  .direct {
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.4rem, 3vw, 2rem);
+  }
+  .direct h2 {
+    font-size: var(--t-lg);
+    margin-bottom: var(--sp-3);
+  }
+  .direct h3 {
+    font-size: var(--t-md);
+    margin-bottom: var(--sp-4);
+  }
+  .direct > p {
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    margin-bottom: var(--sp-5);
+  }
+
+  .direct__row {
+    display: grid;
+    gap: 0.2rem;
+    padding: var(--sp-4) 0;
+    border-top: 1px solid var(--line);
+    text-decoration: none;
+  }
+  a.direct__row:hover .direct__value {
+    color: var(--accent);
+  }
+  .direct__label {
+    font-size: var(--t-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 650;
+  }
+  .direct__value {
+    font-size: var(--t-md);
+    font-weight: 620;
+    color: var(--ink);
+    word-break: break-word;
+    transition: color 0.15s ease;
+  }
+  .direct__buttons {
+    margin-top: var(--sp-5);
+  }
+
+  .contact-social {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+  }
+  .contact-social a {
+    display: inline-block;
+    padding: 0.55rem 1.05rem;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    font-size: var(--t-sm);
+    font-weight: 560;
+    text-decoration: none;
+    color: var(--ink-2);
+    transition: all 0.15s ease;
+  }
+  .contact-social a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--tint);
+  }
+
+  .backup {
+    display: grid;
+    gap: clamp(1.5rem, 4vw, 2.5rem);
+    align-items: center;
+  }
+  @media (min-width: 820px) {
+    .backup {
+      grid-template-columns: 1fr auto;
+    }
+  }
+  .backup h2 {
+    font-size: var(--t-xl);
+    margin-bottom: var(--sp-3);
+  }
+  .backup p {
+    margin: 0;
+    max-width: 46rem;
+  }
+
+  @media (min-width: 940px) {
+    .contact-grid__side {
+      position: sticky;
+    }
+  }
+</style>
